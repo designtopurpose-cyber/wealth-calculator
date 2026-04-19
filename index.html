@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyWealthLens — Stop Guessing. Start Living.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --amber:       #f59e0b;
+      --amber-dark:  #d97706;
+      --amber-glow:  rgba(245,158,11,0.18);
+      --amber-border:rgba(245,158,11,0.25);
+      --bg:          #080b12;
+      --bg-2:        #0d1220;
+      --bg-card:     #111827;
+      --bg-card-2:   #0f172a;
+      --line:        rgba(255,255,255,0.07);
+      --text:        #f1f5f9;
+      --text-mid:    #94a3b8;
+      --text-dim:    #475569;
+      --white:       #ffffff;
+      --radius:      14px;
+      --radius-sm:   8px;
+      --serif:       'Playfair Display', Georgia, serif;
+      --sans:        'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════════
+       NAVIGATION
+    ══════════════════════════════════════════ */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0 5%;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.3s, box-shadow 0.3s, backdrop-filter 0.3s;
+    }
+    .nav.scrolled {
+      background: rgba(8,11,18,0.88);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 1px 0 var(--line);
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 36px; height: 36px;
+      background: var(--amber);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 0 14px var(--amber-glow);
+    }
+    .nav-logo-text {
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.01em;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta {
+      background: var(--amber) !important;
+      color: #0a0a0a !important;
+      padding: 9px 20px;
+      border-radius: var(--radius-sm);
+      font-weight: 700 !important;
+      font-size: 0.875rem !important;
+      transition: box-shadow 0.2s, transform 0.1s !important;
+      box-shadow: 0 0 18px rgba(245,158,11,0.3);
+    }
+    .nav-cta:hover { box-shadow: 0 0 28px rgba(245,158,11,0.5) !important; transform: translateY(-1px); }
+
+    /* Hamburger */
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+    }
+    .nav-hamburger span {
+      display: block;
+      width: 24px; height: 2px;
+      background: var(--text);
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .nav-mobile {
+      display: none;
+      position: fixed;
+      top: 68px; left: 0; right: 0;
+      background: rgba(8,11,18,0.97);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+      padding: 20px 5% 24px;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 99;
+    }
+    .nav-mobile.open { display: flex; }
+    .nav-mobile a {
+      padding: 11px 12px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-mobile a:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+    .nav-mobile .nav-cta {
+      margin-top: 8px;
+      text-align: center;
+      padding: 13px !important;
+    }
+
+    /* ══════════════════════════════════════════
+       HERO
+    ══════════════════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding-top: 68px;
+    }
+
+    /* Left: hero image */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      background: var(--bg);
+    }
+
+    .hero-visual picture,
+    .hero-visual img {
+      width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      border-radius: var(--radius);
+    }
+
+    /* Sun glow on horizon */
+    .hero-sun {
+      position: absolute;
+      bottom: 38%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90px; height: 45px;
+      background: radial-gradient(ellipse at 50% 100%, #fef3c7 0%, #fde68a 30%, #f59e0b 55%, rgba(245,158,11,0) 100%);
+      border-radius: 90px 90px 0 0;
+    }
+
+    /* Lens flare */
+    .hero-flare {
+      position: absolute;
+      bottom: 38.5%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, rgba(253,230,138,0.22) 0%, rgba(245,158,11,0.08) 40%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    /* Road */
+    .hero-road {
+      position: absolute;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 140px solid transparent;
+      border-right: 140px solid transparent;
+      border-bottom: 38vh solid #111113;
+    }
+
+    /* Road surface overlay for texture */
+    .hero-road-surface {
+      position: absolute;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 132px solid transparent;
+      border-right: 132px solid transparent;
+      border-bottom: 37.5vh solid #1a1a1e;
+    }
+
+    /* Road centre line dashes — perspective trick */
+    .hero-road-lines {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 38vh;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    .road-dash {
+      background: #f59e0b;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Ground plane / verge left */
+    .hero-ground-l {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: calc(50% - 140px);
+      height: 38vh;
+      background: linear-gradient(180deg, transparent 0%, #0a100a 60%, #080e08 100%);
+    }
+    /* Ground plane / verge right */
+    .hero-ground-r {
+      position: absolute;
+      bottom: 0; right: 0;
+      width: calc(50% - 140px);
+      height: 38vh;
+      background: linear-gradient(180deg, transparent 0%, #0a100a 60%, #080e08 100%);
+    }
+
+    /* Silhouette figure with arms raised */
+    .hero-figure {
+      position: absolute;
+      bottom: 37%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 38px;
+      z-index: 5;
+    }
+    /* Head */
+    .fig-head {
+      width: 14px; height: 14px;
+      background: #080b12;
+      border-radius: 50%;
+      margin: 0 auto;
+      position: relative;
+    }
+    /* Body */
+    .fig-body {
+      width: 10px; height: 28px;
+      background: #080b12;
+      border-radius: 6px 6px 2px 2px;
+      margin: 0 auto;
+      margin-top: 2px;
+      position: relative;
+    }
+    /* Left arm raised */
+    .fig-arm-l {
+      position: absolute;
+      top: 2px; left: -22px;
+      width: 22px; height: 5px;
+      background: #080b12;
+      border-radius: 3px;
+      transform: rotate(-40deg);
+      transform-origin: right center;
+    }
+    /* Right arm raised */
+    .fig-arm-r {
+      position: absolute;
+      top: 2px; right: -22px;
+      width: 22px; height: 5px;
+      background: #080b12;
+      border-radius: 3px;
+      transform: rotate(40deg);
+      transform-origin: left center;
+    }
+    /* Left leg */
+    .fig-leg-l {
+      position: absolute;
+      bottom: -16px; left: 0;
+      width: 5px; height: 16px;
+      background: #080b12;
+      border-radius: 3px;
+      transform: rotate(-4deg);
+      transform-origin: top center;
+    }
+    /* Right leg */
+    .fig-leg-r {
+      position: absolute;
+      bottom: -16px; right: 0;
+      width: 5px; height: 16px;
+      background: #080b12;
+      border-radius: 3px;
+      transform: rotate(4deg);
+      transform-origin: top center;
+    }
+
+    /* "FINANCIAL FREEDOM" text overlay on road */
+    .hero-road-text {
+      position: absolute;
+      bottom: 4%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 6;
+      white-space: nowrap;
+    }
+    .hero-road-text span {
+      font-family: var(--serif);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(245,158,11,0.7);
+    }
+
+    /* Floating stat card */
+    .hero-float-card {
+      position: absolute;
+      top: 32%;
+      right: -24px;
+      background: rgba(13,18,32,0.92);
+      border: 1px solid var(--amber-border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(245,158,11,0.12);
+      z-index: 10;
+      min-width: 170px;
+      backdrop-filter: blur(12px);
+    }
+    .hero-float-card .fc-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); }
+    .hero-float-card .fc-value { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: var(--white); line-height: 1.1; margin: 2px 0; }
+    .hero-float-card .fc-sub { font-size: 0.72rem; color: var(--amber); font-weight: 600; }
+
+    /* Right: copy panel */
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 72px 7% 72px 6%;
+      background: var(--bg);
+      position: relative;
+    }
+    .hero-copy::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -80px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(245,158,11,0.1);
+      border: 1px solid var(--amber-border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--amber);
+      margin-bottom: 22px;
+      width: fit-content;
+      letter-spacing: 0.03em;
+    }
+    .hero-eyebrow::before { content: '✦'; font-size: 0.6rem; }
+    .hero-h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--white);
+      margin-bottom: 20px;
+    }
+    .hero-h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, #f59e0b, #fde68a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--text-mid);
+      line-height: 1.75;
+      max-width: 440px;
+      margin-bottom: 36px;
+    }
+    .hero-cta-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 36px;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--amber);
+      color: #0a0a0a;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 14px 28px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.1s;
+      box-shadow: 0 0 24px rgba(245,158,11,0.35);
+    }
+    .btn-primary:hover { box-shadow: 0 0 36px rgba(245,158,11,0.55); transform: translateY(-2px); }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: none;
+      color: var(--text-mid);
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 13px 20px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.12);
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-ghost:hover { border-color: var(--amber-border); color: var(--white); }
+    .hero-trust {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .hero-trust-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 0.83rem;
+      color: var(--text-dim);
+    }
+    .hero-trust-item::before {
+      content: '✓';
+      width: 17px; height: 17px;
+      background: rgba(245,158,11,0.15);
+      color: var(--amber);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      line-height: 17px;
+      text-align: center;
+    }
+
+    /* ══════════════════════════════════════════
+       STATS BAR
+    ══════════════════════════════════════════ */
+    .stats-bar {
+      background: var(--bg-card);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 24px 5%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 44px;
+      border-right: 1px solid var(--line);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--amber);
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* ══════════════════════════════════════════
+       SECTIONS SHARED
+    ══════════════════════════════════════════ */
+    section { padding: 88px 5%; }
+    .section-eyebrow {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--amber);
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-family: var(--serif);
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .section-sub {
+      font-size: 0.95rem;
+      color: var(--text-mid);
+      line-height: 1.75;
+      max-width: 540px;
+    }
+    .section-header { margin-bottom: 52px; }
+    .section-header.centered { text-align: center; }
+    .section-header.centered .section-sub { margin: 0 auto; }
+
+    /* ══════════════════════════════════════════
+       BENEFITS — 3 CARDS
+    ══════════════════════════════════════════ */
+    #features { background: var(--bg-2); }
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 64px;
+    }
+    .benefit-card {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      transition: border-color 0.2s;
+    }
+    .benefit-card:hover { border-color: var(--amber-border); }
+    .benefit-icon {
+      font-size: 1.9rem;
+      margin-bottom: 14px;
+      display: block;
+    }
+    .benefit-title {
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .benefit-desc { font-size: 0.875rem; color: var(--text-mid); line-height: 1.65; }
+
+    /* Feature rows */
+    .feature-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 52px;
+      align-items: center;
+      padding: 48px 0;
+      border-top: 1px solid var(--line);
+    }
+    .feature-row:first-of-type { border-top: none; }
+    .feature-row.reversed .feature-text { order: 2; }
+    .feature-row.reversed .feature-visual { order: 1; }
+    .feature-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245,158,11,0.1);
+      color: var(--amber);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      border: 1px solid var(--amber-border);
+    }
+    .feature-text h3 {
+      font-family: var(--serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+    .feature-text p { font-size: 0.9rem; color: var(--text-mid); line-height: 1.75; margin-bottom: 18px; }
+    .feature-checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .feature-checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      font-size: 0.85rem;
+      color: var(--text-mid);
+    }
+    .feature-checklist li::before {
+      content: '✓';
+      background: rgba(245,158,11,0.15);
+      color: var(--amber);
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      font-size: 0.58rem;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Pro badge */
+    .pro-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* Feature visual */
+    .feature-visual {
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--line);
+      align-self: center;
+    }
+    .feature-visual picture,
+    .feature-visual img {
+      width: 100%;
+      max-height: 320px;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    .feature-mockup {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 220px;
+    }
+
+    /* ── Goal Solver mockup ── */
+    .mock-topbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .mock-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .mock-dot.r { background: #ef4444; }
+    .mock-dot.y { background: #eab308; }
+    .mock-dot.g { background: #22c55e; }
+    .mock-tab-bar {
+      display: flex;
+      gap: 4px;
+    }
+    .mock-tab {
+      height: 22px;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.05);
+    }
+    .mock-tab.active { background: var(--amber); }
+    .mock-tab.w-goal { width: 80px; }
+    .mock-tab.w-proj { width: 90px; }
+    .mock-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mock-label { height: 8px; background: rgba(255,255,255,0.15); border-radius: 3px; }
+    .mock-label.w50 { width: 50%; }
+    .mock-label.w30 { width: 30%; }
+    .mock-label.w70 { width: 70%; }
+    .mock-input-field {
+      height: 34px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 8px;
+    }
+    .mock-input-val {
+      height: 10px;
+      background: var(--amber);
+      border-radius: 3px;
+      opacity: 0.7;
+    }
+    .mock-input-val.long { width: 60%; }
+    .mock-input-val.short { width: 35%; }
+    .mock-solve-btn {
+      height: 36px;
+      background: var(--amber);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .mock-solve-label { height: 10px; background: rgba(0,0,0,0.4); border-radius: 3px; width: 45%; }
+    .mock-solve-arrow { height: 10px; width: 16px; background: rgba(0,0,0,0.35); border-radius: 3px; }
+    .mock-result-box {
+      background: rgba(245,158,11,0.08);
+      border: 1px solid var(--amber-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .mock-result-label { height: 7px; background: rgba(245,158,11,0.3); border-radius: 3px; width: 55%; }
+    .mock-result-value { height: 16px; background: var(--amber); border-radius: 3px; width: 70%; opacity: 0.85; }
+
+    /* ── Forecast / drawdown chart mockup ── */
+    .mock-chart-area {
+      flex: 1;
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.02);
+      min-height: 100px;
+    }
+    /* Green growth phase */
+    .mock-chart-area::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 55%; height: 85%;
+      background: rgba(34,197,94,0.12);
+      clip-path: polygon(0 100%, 0 30%, 100% 0%, 100% 100%);
+    }
+    /* Red decline phase */
+    .mock-chart-area::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 45%; height: 75%;
+      background: rgba(239,68,68,0.12);
+      clip-path: polygon(0 0%, 100% 55%, 100% 100%, 0 100%);
+    }
+    .mock-chart-line-g {
+      position: absolute;
+      bottom: 15%; left: 0;
+      width: 55%; height: 2px;
+      background: linear-gradient(90deg, #22c55e44, #22c55e);
+      clip-path: polygon(0 100%, 0 50%, 100% 0%, 100% 100%);
+    }
+    .mock-chart-line-r {
+      position: absolute;
+      bottom: 15%; right: 0;
+      width: 45%; height: 2px;
+      background: linear-gradient(90deg, #ef4444, #ef444444);
+      clip-path: polygon(0 0%, 100% 70%, 100% 100%, 0 100%);
+    }
+    .mock-chart-dot {
+      position: absolute;
+      top: 14%; left: 53%;
+      width: 8px; height: 8px;
+      background: #fff;
+      border-radius: 50%;
+      border: 2px solid #22c55e;
+      box-shadow: 0 0 6px #22c55e88;
+    }
+    .mock-axis-labels {
+      display: flex;
+      justify-content: space-between;
+    }
+    .mock-axis-lbl { height: 6px; background: rgba(255,255,255,0.1); border-radius: 2px; width: 12%; }
+    .mock-stat-row { display: flex; gap: 8px; }
+    .mock-stat {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .mock-stat-label { height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; width: 55%; margin-bottom: 6px; }
+    .mock-stat-value { height: 10px; border-radius: 3px; width: 80%; }
+    .mock-stat-value.amber { background: rgba(245,158,11,0.5); }
+    .mock-stat-value.green { background: rgba(34,197,94,0.45); }
+    .mock-stat-value.red   { background: rgba(239,68,68,0.45); }
+
+    /* ── Scenario comparison mockup ── */
+    .mock-scenario-chart {
+      flex: 1;
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.02);
+      min-height: 110px;
+    }
+    /* Three scenario lines */
+    .mock-scenario-chart::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to right bottom, transparent 30%, rgba(245,158,11,0.2) 100%),
+        linear-gradient(to right, transparent, rgba(59,130,246,0.12));
+    }
+    .mock-line {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      border-radius: 1px;
+    }
+    .mock-line-1 {
+      bottom: 75%; left: 5%; right: 5%;
+      background: var(--amber);
+      clip-path: polygon(0 100%, 25% 60%, 50% 35%, 75% 15%, 100% 0%);
+      height: 75%;
+      background: transparent;
+      border-bottom: 2px solid var(--amber);
+      clip-path: none;
+    }
+    /* simpler approach — colored SVG-like lines via box-shadows */
+    .mock-scenario-lines {
+      position: absolute;
+      inset: 8px;
+    }
+    .scn-line {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .mock-legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0;
+    }
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-label { height: 7px; background: rgba(255,255,255,0.15); border-radius: 3px; }
+    .legend-label.w-s { width: 52px; }
+    .legend-label.w-m { width: 66px; }
+    .legend-label.w-l { width: 44px; }
+
+    /* ── Tax analysis mockup ── */
+    .mock-tax-title { height: 9px; background: rgba(255,255,255,0.2); border-radius: 3px; width: 55%; margin-bottom: 4px; }
+    .mock-tax-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mock-tax-name { height: 7px; background: rgba(255,255,255,0.12); border-radius: 3px; flex: 0 0 70px; }
+    .mock-tax-bar-track {
+      flex: 1;
+      height: 10px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .mock-tax-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+    .mock-tax-bar-fill.cgt  { width: 62%; background: linear-gradient(90deg, var(--amber), #d97706); }
+    .mock-tax-bar-fill.dwt  { width: 38%; background: linear-gradient(90deg, #7c3aed, #4f46e5); }
+    .mock-tax-bar-fill.after{ width: 85%; background: linear-gradient(90deg, #22c55e, #16a34a); }
+    .mock-tax-pct { height: 7px; background: rgba(255,255,255,0.15); border-radius: 2px; flex: 0 0 28px; }
+    .mock-tax-total {
+      background: rgba(245,158,11,0.08);
+      border: 1px solid var(--amber-border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mock-tax-total-label { height: 8px; background: rgba(255,255,255,0.15); border-radius: 3px; width: 50%; }
+    .mock-tax-total-val { height: 12px; background: var(--amber); border-radius: 3px; width: 28%; opacity: 0.8; }
+
+    /* ══════════════════════════════════════════
+       HOW IT WORKS
+    ══════════════════════════════════════════ */
+    #how-it-works { background: var(--bg); }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      position: relative;
+    }
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 27px;
+      left: calc(16.6% + 16px);
+      right: calc(16.6% + 16px);
+      height: 1px;
+      background: linear-gradient(90deg, var(--amber) 0%, rgba(245,158,11,0.2) 50%, var(--amber) 100%);
+    }
+    .step-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+    }
+    .step-num {
+      width: 54px; height: 54px;
+      background: var(--amber);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif);
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #0a0a0a;
+      box-shadow: 0 0 0 6px rgba(245,158,11,0.12), 0 0 24px rgba(245,158,11,0.25);
+      position: relative;
+      z-index: 1;
+    }
+    .step-card h3 { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; color: var(--white); }
+    .step-card p { font-size: 0.85rem; color: var(--text-mid); line-height: 1.65; }
+
+    /* ══════════════════════════════════════════
+       QUOTE
+    ══════════════════════════════════════════ */
+    .quote-section {
+      background: var(--bg-card);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 80px 5%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .quote-section::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(245,158,11,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .quote-mark {
+      font-family: var(--serif);
+      font-size: 6rem;
+      line-height: 0.5;
+      color: rgba(245,158,11,0.2);
+      display: block;
+      margin-bottom: 20px;
+    }
+    .quote-text {
+      font-family: var(--serif);
+      font-size: clamp(1.4rem, 2.8vw, 2rem);
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.4;
+      max-width: 700px;
+      margin: 0 auto 24px;
+    }
+    .quote-text em { font-style: normal; color: var(--amber); }
+    .quote-attr {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    /* ══════════════════════════════════════════
+       PRICING
+    ══════════════════════════════════════════ */
+    #pricing { background: var(--bg-2); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .pricing-card {
+      border-radius: var(--radius);
+      padding: 34px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .pricing-card.free {
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+    }
+    .pricing-card.pro {
+      background: var(--bg-card);
+      border: 1px solid var(--amber-border);
+      box-shadow: 0 0 40px rgba(245,158,11,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .pricing-card.pro::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .pricing-badge {
+      position: absolute;
+      top: 18px; right: 18px;
+      background: var(--amber);
+      color: #0a0a0a;
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .pricing-tier {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 4px;
+    }
+    .pricing-card.free .pricing-tier { color: var(--text-dim); }
+    .pricing-card.pro .pricing-tier { color: var(--amber); }
+    .pricing-price {
+      font-family: var(--serif);
+      font-size: 2.6rem;
+      font-weight: 800;
+      line-height: 1;
+      margin: 8px 0 4px;
+      color: var(--white);
+    }
+    .pricing-period {
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 20px;
+      color: var(--text-dim);
+    }
+    .pricing-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 28px;
+      flex: 1;
+    }
+    .pricing-features li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: var(--text-mid);
+    }
+    .pricing-features li::before {
+      content: '✓';
+      width: 17px; height: 17px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      background: rgba(245,158,11,0.15);
+      color: var(--amber);
+    }
+    .pricing-features li.dimmed { opacity: 0.35; }
+    .pricing-features li.dimmed::before { content: '–'; background: rgba(255,255,255,0.04); color: var(--text-dim); }
+    .btn-pricing-free {
+      display: block;
+      text-align: center;
+      padding: 13px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: var(--radius-sm);
+      color: var(--text-mid);
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-pricing-free:hover { border-color: var(--amber-border); color: var(--white); }
+    .btn-pricing-pro {
+      display: block;
+      text-align: center;
+      padding: 13px;
+      background: var(--amber);
+      border-radius: var(--radius-sm);
+      color: #0a0a0a;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: box-shadow 0.2s, transform 0.1s;
+      box-shadow: 0 0 20px rgba(245,158,11,0.3);
+    }
+    .btn-pricing-pro:hover { box-shadow: 0 0 32px rgba(245,158,11,0.5); transform: translateY(-1px); }
+    .pricing-cancel {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 8px;
+    }
+
+    /* ══════════════════════════════════════════
+       FAQ
+    ══════════════════════════════════════════ */
+    #faq { background: var(--bg); }
+    .faq-list {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .faq-item { border-bottom: 1px solid var(--line); }
+    .faq-question {
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      padding: 20px 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      transition: color 0.15s;
+    }
+    .faq-question:hover { color: var(--amber); }
+    .faq-icon {
+      width: 22px; height: 22px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-mid);
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1;
+      flex-shrink: 0;
+      transition: transform 0.2s, background 0.15s;
+    }
+    .faq-item.open .faq-icon { transform: rotate(45deg); background: var(--amber); color: #0a0a0a; }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .faq-item.open .faq-answer { max-height: 300px; }
+    .faq-answer p {
+      padding: 0 4px 20px;
+      font-size: 0.87rem;
+      color: var(--text-mid);
+      line-height: 1.75;
+    }
+
+    /* ══════════════════════════════════════════
+       CTA BANNER
+    ══════════════════════════════════════════ */
+    .cta-banner {
+      background: var(--bg-card);
+      border-top: 1px solid var(--line);
+      padding: 80px 5%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px; height: 300px;
+      background: radial-gradient(ellipse, rgba(245,158,11,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .cta-banner h2 {
+      font-family: var(--serif);
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .cta-banner h2 em { font-style: normal; color: var(--amber); }
+    .cta-banner p { font-size: 0.95rem; color: var(--text-mid); margin-bottom: 32px; max-width: 440px; margin-left: auto; margin-right: auto; }
+    .cta-banner .btn-primary { margin: 0 auto; display: inline-flex; }
+
+    /* ══════════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════════ */
+    footer {
+      background: #050810;
+      border-top: 1px solid var(--line);
+      padding: 48px 5% 28px;
+    }
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+      padding-bottom: 36px;
+      border-bottom: 1px solid var(--line);
+      flex-wrap: wrap;
+    }
+    .footer-tagline { font-size: 0.82rem; color: var(--text-dim); margin-top: 8px; max-width: 200px; line-height: 1.55; }
+    .footer-links { display: flex; gap: 48px; flex-wrap: wrap; }
+    .footer-col h4 { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-dim); margin-bottom: 14px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .footer-col a { font-size: 0.82rem; color: var(--text-dim); text-decoration: none; transition: color 0.15s; }
+    .footer-col a:hover { color: var(--amber); }
+    .footer-bottom {
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-disclaimer { font-size: 0.7rem; color: rgba(255,255,255,0.18); line-height: 1.55; max-width: 520px; }
+    .footer-copy { font-size: 0.7rem; color: rgba(255,255,255,0.18); }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .nav-hamburger { display: flex; }
+
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-visual { height: 360px; }
+      .hero-float-card { right: 16px; top: auto; bottom: 24px; }
+      .hero-copy { padding: 48px 6%; }
+
+      .benefits-grid { grid-template-columns: 1fr; }
+      .feature-row { grid-template-columns: 1fr; gap: 28px; }
+      .feature-row.reversed .feature-text { order: 1; }
+      .feature-row.reversed .feature-visual { order: 2; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .steps-grid::before { display: none; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
+      .footer-links { gap: 28px; }
+      .footer-top { flex-direction: column; }
+    }
+
+    @media (max-width: 480px) {
+      section { padding: 60px 5%; }
+      .hero-visual { height: 280px; }
+      .stat-item { padding: 8px 20px; }
+      .stat-num { font-size: 1.3rem; }
+      .quote-text { font-size: 1.3rem; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav class="nav" id="mainNav">
+  <a href="#home" class="nav-logo">
+    <div class="nav-logo-icon">📈</div>
+    <span class="nav-logo-text">MyWealthLens</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="resources.html">How to Get Started</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="calculator.html" class="nav-cta">Launch Calculator →</a></li>
+  </ul>
+  <button class="nav-hamburger" id="hamburger" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile nav drawer -->
+<nav class="nav-mobile" id="mobileNav">
+  <a href="#home">Home</a>
+  <a href="#features">Features</a>
+  <a href="#how-it-works">How It Works</a>
+  <a href="resources.html">How to Get Started</a>
+  <a href="#pricing">Pricing</a>
+  <a href="#faq">FAQ</a>
+  <a href="calculator.html" class="nav-cta">Launch Calculator →</a>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section id="home" class="hero">
+
+  <!-- Left: hero image -->
+  <div class="hero-visual">
+    <picture>
+      <source media="(max-width: 600px)" srcset="hero_800.jpg">
+      <img src="hero_1280.jpg" alt="Financial Freedom">
+    </picture>
+  </div>
+
+  <!-- Right: copy -->
+  <div class="hero-copy">
+    <span class="hero-eyebrow">Built for South Africans</span>
+    <h1 class="hero-h1">Stop Guessing.<br><em>Start Living.</em></h1>
+    <p class="hero-sub">
+      Tell the calculator your dream — the age, the amount, the life.
+      It'll tell you exactly what it takes to get there. No spreadsheets.
+      No guesswork. Just a clear, honest number.
+    </p>
+    <div class="hero-cta-group">
+      <a href="calculator.html" class="btn-primary">
+        Calculate My Freedom
+        <span>→</span>
+      </a>
+      <a href="#features" class="btn-ghost">See what's inside</a>
+    </div>
+    <div class="hero-trust">
+      <div class="hero-trust-item">Free to use — no sign-up needed</div>
+      <div class="hero-trust-item">South African tax rates built in</div>
+      <div class="hero-trust-item">Pro tools for serious wealth builders</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══ STATS BAR ══ -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-num">5</span>
+    <span class="stat-lbl">Pro Planning Tools</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">R39</span>
+    <span class="stat-lbl">Per month, cancel anytime</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">100%</span>
+    <span class="stat-lbl">Browser-based, no data stored</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">SARS</span>
+    <span class="stat-lbl">Tax rates validated</span>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<section id="features">
+  <div class="section-header">
+    <div class="section-eyebrow">What you get</div>
+    <h2 class="section-title">Everything you need to plan<br>a financially free future</h2>
+    <p class="section-sub">From basic projections to advanced tax analysis — MyWealthLens gives you tools that most people only get from a financial advisor.</p>
+  </div>
+
+  <!-- 3 benefit cards -->
+  <div class="benefits-grid">
+    <div class="benefit-card">
+      <span class="benefit-icon">🎯</span>
+      <div class="benefit-title">Set a Goal. Get a Plan.</div>
+      <p class="benefit-desc">Enter your target amount and age. The Goal Solver works backwards to tell you exactly what monthly contribution, growth rate, or initial capital you need.</p>
+    </div>
+    <div class="benefit-card">
+      <span class="benefit-icon">📊</span>
+      <div class="benefit-title">See the Full Picture</div>
+      <p class="benefit-desc">Interactive charts show your portfolio growing year by year — split between your contributions and the compounding interest working for you.</p>
+    </div>
+    <div class="benefit-card">
+      <span class="benefit-icon">🔒</span>
+      <div class="benefit-title">Pro Tools for Serious Planners</div>
+      <p class="benefit-desc">Inflation-adjusted returns, 3-scenario comparison, SA tax analysis, retirement income forecasting, and PDF export — all in one place.</p>
+    </div>
+  </div>
+
+  <!-- Feature 1: Goal Solver -->
+  <div class="feature-row">
+    <div class="feature-text">
+      <div class="feature-tag">Goal Solver</div>
+      <h3>What's your number?<br>We'll find it.</h3>
+      <p>The Goal Solver is the heart of MyWealthLens. Lock any variable — your initial capital, monthly contribution, or annual return — and the calculator solves for the other two in real time.</p>
+      <ul class="feature-checklist">
+        <li>Solve for monthly contribution needed</li>
+        <li>Solve for required initial capital</li>
+        <li>Solve for the return rate you need to target</li>
+      </ul>
+    </div>
+    <div class="feature-visual">
+      <picture>
+        <source media="(max-width: 600px)" srcset="goal_mobile.jpg">
+        <img src="goal_web.jpg" alt="Goal Solver">
+      </picture>
+    </div>
+  </div>
+
+  <!-- Feature 2: Forecast After Target -->
+  <div class="feature-row reversed">
+    <div class="feature-text">
+      <div class="feature-tag">Pro Feature <span class="pro-badge">🔓 Pro</span></div>
+      <h3>Plan for life after your target age</h3>
+      <p>The Forecast After Target tool takes your projected portfolio and models what happens next — how long your money lasts, what monthly income it generates, and at what point it starts to decline.</p>
+      <ul class="feature-checklist">
+        <li>Monthly income from capital at any drawdown rate</li>
+        <li>Capital depletion date — know when the money runs out</li>
+        <li>Chart turns red when the portfolio starts declining</li>
+      </ul>
+    </div>
+    <div class="feature-visual">
+      <picture>
+        <source media="(max-width: 600px)" srcset="retired_800.jpg">
+        <img src="retired_1280.jpg" alt="Forecast After Target">
+      </picture>
+    </div>
+  </div>
+
+  <!-- Feature 3: Scenario Comparison -->
+  <div class="feature-row">
+    <div class="feature-text">
+      <div class="feature-tag">Pro Feature <span class="pro-badge">🔓 Pro</span></div>
+      <h3>Compare 3 strategies side by side</h3>
+      <p>Not sure whether to invest more aggressively or increase monthly contributions? The Scenario Comparison tool plots three independent strategies on one chart so you can see the difference clearly.</p>
+      <ul class="feature-checklist">
+        <li>3 fully independent scenarios with different inputs</li>
+        <li>Combined chart with colour-coded lines per scenario</li>
+        <li>Final portfolio value comparison at a glance</li>
+      </ul>
+    </div>
+    <div class="feature-visual">
+      <picture>
+        <source media="(max-width: 600px)" srcset="compare_mobile.jpg">
+        <img src="compare_web.jpg" alt="Compare 3 Strategies">
+      </picture>
+    </div>
+  </div>
+
+  <!-- Feature 4: Tax Analysis -->
+  <div class="feature-row reversed">
+    <div class="feature-text">
+      <div class="feature-tag">Pro Feature <span class="pro-badge">🔓 Pro</span></div>
+      <h3>What does SARS take?<br>Know before you retire.</h3>
+      <p>South Africa's tax rules for investors are complex. The Tax Analysis tool applies CGT inclusion rates, your marginal tax rate, and dividends withholding tax to your projected portfolio — so you plan with the after-tax number.</p>
+      <ul class="feature-checklist">
+        <li>CGT at 40% inclusion, up to 18% effective rate</li>
+        <li>20% dividends withholding tax on income</li>
+        <li>Adjustable growth vs income split</li>
+        <li>Hover tooltips explain every SARS rate</li>
+      </ul>
+    </div>
+    <div class="feature-visual">
+      <picture>
+        <source media="(max-width: 600px)" srcset="tax_mobile.jpg">
+        <img src="tax_web.jpg" alt="Tax Analysis">
+      </picture>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section id="how-it-works">
+  <div class="section-header centered">
+    <div class="section-eyebrow">Simple process</div>
+    <h2 class="section-title">Three steps to financial clarity</h2>
+    <p class="section-sub">MyWealthLens is built to give you a real answer in under two minutes — no account, no email, no waiting.</p>
+  </div>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <h3>Set your goal</h3>
+      <p>Enter your target amount and the age you want to reach it. Switch between Goal Solver and Projection mode depending on what you know.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <h3>Run your projection</h3>
+      <p>Adjust your initial capital, monthly contribution, and growth rate. The chart updates in real time — every tweak shows you the impact immediately.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <h3>Unlock deeper insights</h3>
+      <p>Upgrade to Pro to model inflation, compare strategies, analyse your tax exposure, and plan your income after you reach your target.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ QUOTE ══ -->
+<div class="quote-section">
+  <span class="quote-mark">"</span>
+  <p class="quote-text">Financial freedom is not a dream reserved for the lucky — it's a <em>number</em>, a <em>timeline</em>, and a <em>plan</em>.</p>
+  <p class="quote-attr">MyWealthLens helps you find all three.</p>
+</div>
+
+<!-- ══ PRICING ══ -->
+<section id="pricing">
+  <div class="section-header centered">
+    <div class="section-eyebrow">Pricing</div>
+    <h2 class="section-title">Start free. Go Pro when you're ready.</h2>
+    <p class="section-sub">The core calculator is completely free, forever. Pro unlocks advanced planning tools for R39/month.</p>
+  </div>
+  <div class="pricing-grid">
+
+    <div class="pricing-card free">
+      <div class="pricing-tier">Free</div>
+      <div class="pricing-price">R0</div>
+      <div class="pricing-period">Always free</div>
+      <ul class="pricing-features">
+        <li>Goal Solver</li>
+        <li>Projection mode</li>
+        <li>Interactive growth chart</li>
+        <li>Summary stats dashboard</li>
+        <li class="dimmed">Forecast After Target</li>
+        <li class="dimmed">Inflation-Adjusted Returns</li>
+        <li class="dimmed">Scenario Comparison</li>
+        <li class="dimmed">Tax Analysis</li>
+        <li class="dimmed">PDF Export</li>
+      </ul>
+      <a href="calculator.html" class="btn-pricing-free">Launch Free Calculator</a>
+    </div>
+
+    <div class="pricing-card pro">
+      <div class="pricing-badge">Most Popular</div>
+      <div class="pricing-tier">Pro</div>
+      <div class="pricing-price">R39</div>
+      <div class="pricing-period">per month</div>
+      <ul class="pricing-features">
+        <li>Everything in Free</li>
+        <li>Forecast After Target</li>
+        <li>Inflation-Adjusted Returns</li>
+        <li>3-Scenario Comparison</li>
+        <li>SA Tax Analysis (CGT + DWT)</li>
+        <li>Export to PDF</li>
+        <li>Sources &amp; Validation tab</li>
+      </ul>
+      <button type="button" class="btn-pricing-pro" onclick="openProModal()">Unlock Pro — R39/month</button>
+      <div class="pricing-cancel">Cancel anytime · No contract</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ FAQ ══ -->
+<section id="faq">
+  <div class="section-header centered">
+    <div class="section-eyebrow">Questions</div>
+    <h2 class="section-title">Frequently asked</h2>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-question" type="button">
+        Is my financial data stored anywhere?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer"><p>No. MyWealthLens runs entirely in your browser. No data is sent to any server, no account is required, and nothing is stored beyond your local browser session. Your numbers stay on your device.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" type="button">
+        How accurate are the calculations?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer"><p>The compound interest formula, inflation deflation, and goal solvers are based on established financial mathematics validated against Investopedia, CFI, and SARS documentation. The Sources &amp; Validation tab (Pro) lists every formula and its reference. Projections assume constant rates — real-world returns vary.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" type="button">
+        Are the tax rates correct for South Africa?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer"><p>Yes — the defaults use 2024/25 SARS rates: CGT inclusion 40%, maximum marginal rate 45% (effective CGT 18%), and dividends withholding tax at 20%. You can adjust all rates to match your situation. The calculator does not account for the annual R40,000 CGT exclusion — consult a tax advisor for personal advice.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" type="button">
+        Can I cancel my Pro subscription?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer"><p>Yes. Pro is month-to-month with no contract or commitment. Cancel at any time and you will not be charged again. Your access continues until the end of the billing period.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question" type="button">
+        Does this replace a financial advisor?
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer"><p>No — and it doesn't try to. MyWealthLens is an illustrative planning tool that helps you understand compound growth and set informed goals. For personalised investment advice, tax structuring, and product selection, always work with a qualified financial advisor and registered tax practitioner.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA BANNER ══ -->
+<div class="cta-banner">
+  <h2>Your <em>financially free</em> life<br>starts with one honest number.</h2>
+  <p>No sign-up. No spreadsheets. Just open the calculator and see where you stand.</p>
+  <a href="calculator.html" class="btn-primary">
+    Calculate My Freedom →
+  </a>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="#home" class="nav-logo">
+        <div class="nav-logo-icon">📈</div>
+        <span class="nav-logo-text">MyWealthLens</span>
+      </a>
+      <p class="footer-tagline">South Africa's sharpest wealth planning calculator.</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="calculator.html">Calculator</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="resources.html">How to Get Started</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="calculator.html">Sources &amp; Validation</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Use</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-disclaimer">For illustrative purposes only. Not financial advice. Tax rates based on 2024/25 SARS guidelines. Consult a qualified financial advisor before making investment decisions.</p>
+    <p class="footer-copy">© 2025 MyWealthLens</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Nav scroll effect ── */
+  const nav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 10);
+  }, { passive: true });
+
+  /* ── Hamburger ── */
+  const hamburger = document.getElementById('hamburger');
+  const mobileNav = document.getElementById('mobileNav');
+  hamburger.addEventListener('click', () => {
+    const open = hamburger.classList.toggle('open');
+    mobileNav.classList.toggle('open', open);
+  });
+  mobileNav.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      mobileNav.classList.remove('open');
+    });
+  });
+
+  /* ── Road dashes (perspective) ── */
+  const roadLines = document.getElementById('roadLines');
+  if (roadLines) {
+    // 8 dashes, decreasing height and opacity as they recede
+    const dashes = [
+      { h: 28, w: 4, op: 1.0 },
+      { h: 22, w: 3.5, op: 0.9 },
+      { h: 16, w: 3, op: 0.75 },
+      { h: 12, w: 2.5, op: 0.6 },
+      { h: 9,  w: 2, op: 0.45 },
+      { h: 6,  w: 1.5, op: 0.3 },
+      { h: 4,  w: 1.2, op: 0.2 },
+      { h: 3,  w: 1, op: 0.12 },
+    ];
+    dashes.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'road-dash';
+      el.style.cssText = `height:${d.h}px;width:${d.w}px;opacity:${d.op};margin-bottom:${d.h * 0.6}px;`;
+      roadLines.appendChild(el);
+    });
+  }
+
+  /* ── Stats count-up ── */
+  const statNums = document.querySelectorAll('.stat-num');
+  const numTargets = { '5': 5, 'R39': null, '100': 100, 'SARS': null };
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      observer.unobserve(entry.target);
+      const el = entry.target;
+      const text = el.textContent.trim();
+      const match = text.match(/\d+/);
+      if (!match) return;
+      const target = parseInt(match[0]);
+      const prefix = text.startsWith('R') ? 'R' : '';
+      const suffix = text.endsWith('%') ? '%' : '';
+      let start = null;
+      const dur = 1200;
+      function step(ts) {
+        if (!start) start = ts;
+        const progress = Math.min((ts - start) / dur, 1);
+        const val = Math.round(progress * target);
+        el.textContent = prefix + val + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }, { threshold: 0.5 });
+  statNums.forEach(el => observer.observe(el));
+
+  /* ── FAQ accordion ── */
+  document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.faq-item');
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+
+})();
+</script>
+
+<!-- ══ PRO MODAL ══ -->
+<style>
+  .lp-modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .lp-modal-backdrop.open { display: flex; }
+  .lp-modal {
+    background: #111827;
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 14px;
+    max-width: 400px;
+    width: 100%;
+    padding: 28px 28px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(245,158,11,0.08);
+    position: relative;
+  }
+  .lp-modal-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 28px; height: 28px;
+    border: none; background: rgba(255,255,255,0.06);
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #94a3b8; font-size: 1rem;
+    transition: background 0.15s;
+  }
+  .lp-modal-close:hover { background: rgba(255,255,255,0.12); }
+  .lp-modal-icon {
+    width: 48px; height: 48px;
+    background: #f59e0b;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 14px;
+    box-shadow: 0 0 20px rgba(245,158,11,0.3);
+  }
+  .lp-modal h2 {
+    font-size: 1.2rem; font-weight: 700;
+    color: #f1f5f9; margin-bottom: 6px;
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+  .lp-modal-sub { font-size: 0.85rem; color: #94a3b8; margin-bottom: 16px; }
+  .lp-feature-list {
+    list-style: none; margin-bottom: 20px;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .lp-feature-list li {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.875rem; color: #f1f5f9;
+  }
+  .lp-feature-list li::before {
+    content: '✓';
+    width: 18px; height: 18px;
+    background: rgba(245,158,11,0.15); color: #f59e0b;
+    border-radius: 50%; font-size: 0.7rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; text-align: center; line-height: 18px;
+  }
+  .lp-price-line {
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 8px; padding: 10px 14px;
+    display: flex; align-items: baseline; gap: 6px;
+    margin-bottom: 16px;
+  }
+  .lp-price { font-size: 1.5rem; font-weight: 800; color: #f59e0b; font-family: 'Playfair Display', Georgia, serif; }
+  .lp-price-period { font-size: 0.85rem; color: #94a3b8; }
+  .lp-price-cancel { margin-left: auto; font-size: 0.75rem; color: #10b981; font-weight: 600; }
+  .lp-btn-subscribe {
+    width: 100%; padding: 11px;
+    background: #f59e0b; color: #0a0a0a;
+    border: none; border-radius: 8px;
+    font-size: 0.9375rem; font-weight: 700;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.1s;
+    margin-bottom: 10px;
+    box-shadow: 0 0 20px rgba(245,158,11,0.25);
+  }
+  .lp-btn-subscribe:hover { box-shadow: 0 0 32px rgba(245,158,11,0.45); transform: translateY(-1px); }
+  .lp-btn-restore {
+    display: block; width: 100%; text-align: center;
+    background: none; border: none;
+    font-size: 0.8rem; color: #475569;
+    cursor: pointer; padding: 4px;
+    text-decoration: underline; font-family: inherit;
+  }
+  .lp-btn-restore:hover { color: #f59e0b; }
+</style>
+
+<div class="lp-modal-backdrop" id="lpModalBackdrop">
+  <div class="lp-modal" role="dialog" aria-modal="true" aria-labelledby="lpModalTitle">
+    <button class="lp-modal-close" onclick="closeProModal()" aria-label="Close">✕</button>
+    <div class="lp-modal-icon">🔓</div>
+    <h2 id="lpModalTitle">Unlock MyWealthLens Pro</h2>
+    <p class="lp-modal-sub">Get access to all advanced planning tools for R39/month.</p>
+    <ul class="lp-feature-list">
+      <li>Forecast After Target</li>
+      <li>Inflation-Adjusted Returns</li>
+      <li>3-Scenario Comparison</li>
+      <li>SA Tax Analysis (CGT + DWT)</li>
+      <li>Export to PDF</li>
+      <li>Sources &amp; Validation tab</li>
+    </ul>
+    <div class="lp-price-line">
+      <span class="lp-price">R39</span>
+      <span class="lp-price-period">/ month</span>
+      <span class="lp-price-cancel">Cancel anytime</span>
+    </div>
+    <button class="lp-btn-subscribe" onclick="goToPayment()">Subscribe — R39/month →</button>
+    <button class="lp-btn-restore" onclick="restoreAccess()">Already subscribed? Restore access</button>
+  </div>
+</div>
+
+<script>
+  const LP_PAYMENT_URL  = 'YOUR_PAYMENT_LINK_HERE';
+  const LP_RESTORE_CODE = 'WEALTHPRO2026';
+
+  function openProModal() {
+    document.getElementById('lpModalBackdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeProModal() {
+    document.getElementById('lpModalBackdrop').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function goToPayment() {
+    window.open(LP_PAYMENT_URL, '_blank');
+  }
+  function restoreAccess() {
+    const code = prompt('Enter your restore code:');
+    if (code && code.trim().toUpperCase() === LP_RESTORE_CODE) {
+      localStorage.setItem('proUnlocked', '1');
+      alert('Pro access restored! Opening the calculator now.');
+      closeProModal();
+      window.location.href = 'calculator.html';
+    } else if (code !== null) {
+      alert('Code not recognised. Please check your email or contact support.');
+    }
+  }
+  // Close on backdrop click
+  document.getElementById('lpModalBackdrop').addEventListener('click', function(e) {
+    if (e.target === this) closeProModal();
+  });
+  // Close on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeProModal();
+  });
+</script>
+</body>
+</html>

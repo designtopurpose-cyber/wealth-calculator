@@ -1,0 +1,2501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyWealthLens — Wealth Accumulation Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #080b12;
+      --bg-2:        #0d1220;
+      --card:        #111827;
+      --card-2:      #0f172a;
+      --blue:        #3b82f6;
+      --blue-light:  rgba(59,130,246,0.12);
+      --green:       #10b981;
+      --green-light: rgba(16,185,129,0.12);
+      --amber:       #f59e0b;
+      --amber-light: rgba(245,158,11,0.12);
+      --amber-border:rgba(245,158,11,0.25);
+      --amber-glow:  rgba(245,158,11,0.18);
+      --red:         #ef4444;
+      --red-light:   rgba(239,68,68,0.12);
+      --purple:      #a855f7;
+      --text:        #f1f5f9;
+      --text-muted:  #94a3b8;
+      --text-dim:    #475569;
+      --border:      rgba(255,255,255,0.08);
+      --shadow:      0 2px 8px rgba(0,0,0,0.4);
+      --shadow-md:   0 8px 24px rgba(0,0,0,0.5);
+      --radius:      12px;
+      --radius-sm:   8px;
+      --serif:       'Playfair Display', Georgia, serif;
+      --sans:        'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: var(--sans);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: rgba(8,11,18,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .header-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      transition: color 0.15s, border-color 0.15s;
+      margin-right: 4px;
+      white-space: nowrap;
+    }
+    .header-back:hover { color: var(--amber); border-color: var(--amber-border); }
+    .header-icon {
+      width: 38px; height: 38px;
+      background: var(--amber);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 14px var(--amber-glow);
+      font-size: 1.1rem;
+    }
+    header h1 { font-size: 1.15rem; font-weight: 700; color: var(--text); font-family: var(--serif); }
+    header p  { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Main grid ── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      grid-template-rows: auto auto auto auto;
+      gap: 14px;
+    }
+    .summary-bar   { grid-column: 1 / -1; grid-row: 1; }
+    #inputsCard    { grid-row: 2; }
+    .chart-card    { grid-row: 2; }
+    #goalPanelWrap { grid-column: 1 / -1; grid-row: 3; }
+    #proWrap       { grid-column: 1 / -1; grid-row: 4; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .card-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    /* ── Mode toggle ── */
+    .mode-toggle {
+      display: flex;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 3px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .mode-btn.active {
+      background: var(--amber);
+      color: #0a0a0a;
+      box-shadow: 0 0 12px var(--amber-glow);
+      font-weight: 700;
+    }
+
+    /* ── Input groups ── */
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .input-row.single-col {
+      grid-template-columns: 1fr;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .input-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-2);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      overflow: hidden;
+    }
+    .input-wrapper:focus-within {
+      border-color: var(--amber-border);
+      box-shadow: 0 0 0 3px var(--amber-glow);
+    }
+    .input-wrapper.error {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px var(--red-light);
+    }
+    .input-wrapper.solved {
+      border-color: var(--green);
+      background: rgba(16,185,129,0.06);
+    }
+
+    .input-prefix {
+      padding: 0 10px;
+      font-size: 0.875rem;
+      color: var(--text-dim);
+      background: rgba(255,255,255,0.03);
+      border-right: 1px solid var(--border);
+      height: 38px;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .input-suffix {
+      padding: 0 10px;
+      font-size: 0.875rem;
+      color: var(--text-dim);
+      background: rgba(255,255,255,0.03);
+      border-left: 1px solid var(--border);
+      height: 38px;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    input[type="text"], input[type="number"] {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 0 10px;
+      height: 38px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      color: var(--text);
+      background: transparent;
+      min-width: 0;
+    }
+    input[type="text"]:read-only {
+      color: var(--amber);
+      font-weight: 600;
+      cursor: default;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    /* Solve button */
+    .solve-btn {
+      width: 32px; height: 38px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .solve-btn:hover { color: var(--amber); background: var(--amber-light); }
+    .solve-btn.active { color: var(--amber); background: var(--amber-light); }
+    .solve-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    .goal-mode .solve-btn { display: flex; }
+
+    /* Error message */
+    .field-error {
+      font-size: 0.75rem;
+      color: var(--red);
+      min-height: 14px;
+      line-height: 14px;
+    }
+
+    /* Divider */
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+
+    /* Solve-for selector */
+    .solve-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .solve-options {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .solve-option {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .solve-option:hover { border-color: var(--amber-border); color: var(--amber); }
+    .solve-option.active {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: #0a0a0a;
+      font-weight: 600;
+    }
+
+    /* ── Chart card ── */
+    .chart-card { display: flex; flex-direction: column; }
+    .chart-wrapper { position: relative; height: 320px; }
+
+    /* ── Summary bar ── */
+    .summary-bar {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .stat {
+      padding: 12px 20px;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-value.positive { color: var(--green); }
+    .stat-value.accent   { color: var(--amber); }
+    .stat-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* ── Goal panel ── */
+    #goalPanelWrap {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.25s ease;
+    }
+    #app.goal-mode #goalPanelWrap { max-height: 300px; }
+    @media (max-width: 900px) {
+      #app.goal-mode #goalPanelWrap { max-height: 600px; }
+    }
+
+    .goal-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 16px 24px;
+      flex-wrap: wrap;
+    }
+    .goal-card .input-group { flex: 0 0 220px; }
+    .goal-divider {
+      width: 1px;
+      align-self: stretch;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .goal-solve-section { flex: 1; min-width: 180px; }
+    .goal-solve-section .solve-label { margin-bottom: 8px; }
+
+    /* ── Pro features bar ── */
+    .pro-features-section {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .pro-section-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .pro-features-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .pro-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 7px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      cursor: pointer;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      position: relative;
+      min-width: 60px;
+      white-space: nowrap;
+    }
+    .pro-btn:hover { border-color: var(--amber-border); color: var(--amber); }
+    .pro-btn.active { border-color: var(--amber-border); color: var(--amber); background: var(--amber-light); }
+    .pro-btn .pro-icon { font-size: 1rem; line-height: 1; }
+    .lock-badge {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      font-size: 8px;
+      line-height: 1;
+      opacity: 0.7;
+    }
+
+    /* Warning banner */
+    .warning-banner {
+      display: none;
+      background: rgba(245,158,11,0.08);
+      border: 1px solid var(--amber-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      color: var(--amber);
+      margin-top: 10px;
+    }
+    .warning-banner.show { display: flex; align-items: flex-start; gap: 8px; }
+
+    /* ── Pro Modal ── */
+    .pro-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .pro-modal-backdrop.open { display: flex; }
+    .pro-modal {
+      background: var(--card);
+      border: 1px solid var(--amber-border);
+      border-radius: var(--radius);
+      max-width: 400px;
+      width: 100%;
+      padding: 28px 28px 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(245,158,11,0.08);
+      position: relative;
+    }
+    .pro-modal-close {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 28px; height: 28px;
+      border: none;
+      background: rgba(255,255,255,0.06);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      font-size: 1rem;
+      transition: background 0.15s;
+    }
+    .pro-modal-close:hover { background: rgba(255,255,255,0.12); }
+    .pro-modal-icon {
+      width: 48px; height: 48px;
+      background: var(--amber);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 14px;
+      box-shadow: 0 0 20px var(--amber-glow);
+    }
+    .pro-modal h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+      font-family: var(--serif);
+    }
+    .pro-modal-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .pro-feature-list {
+      list-style: none;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .pro-feature-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.875rem;
+      color: var(--text);
+    }
+    .pro-feature-list li::before {
+      content: '✓';
+      width: 18px; height: 18px;
+      background: var(--green-light);
+      color: var(--green);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      text-align: center;
+      line-height: 18px;
+    }
+    .pro-price-line {
+      background: var(--amber-light);
+      border: 1px solid var(--amber-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .pro-price {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--amber);
+      font-family: var(--serif);
+    }
+    .pro-price-period {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .pro-price-cancel {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--green);
+      font-weight: 600;
+    }
+    .btn-subscribe {
+      width: 100%;
+      padding: 11px;
+      background: var(--amber);
+      color: #0a0a0a;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.9375rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.1s;
+      margin-bottom: 10px;
+      box-shadow: 0 0 20px var(--amber-glow);
+    }
+    .btn-subscribe:hover { box-shadow: 0 0 32px rgba(245,158,11,0.45); transform: translateY(-1px); }
+    .btn-restore {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background: none;
+      border: none;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 4px;
+      text-decoration: underline;
+    }
+    .btn-restore:hover { color: var(--amber); }
+
+    /* ── Pro Section ── */
+    #proWrap {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+    }
+    #proWrap.open { max-height: 900px; }
+
+    .pro-card {
+      padding: 0;
+      overflow: visible;
+    }
+    .pro-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex-shrink: 0;
+      padding: 0 4px;
+    }
+    .pro-tabs::-webkit-scrollbar { display: none; }
+    .pro-tab-btn {
+      padding: 11px 16px;
+      border: none;
+      background: none;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .pro-tab-btn:hover { color: var(--text); }
+    .pro-tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); font-weight: 600; }
+    .pro-tab-panel { display: none; }
+    .pro-tab-panel.active { display: block; }
+
+    /* ── Forecast tab (existing layout, inside pro) ── */
+    .forecast-inner {
+      display: grid;
+      grid-template-columns: 260px 1px 190px 1px 1fr;
+    }
+    .forecast-inputs {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .forecast-sep {
+      background: var(--border);
+      align-self: stretch;
+    }
+    .forecast-stats {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+    }
+    .fstat { display: flex; flex-direction: column; gap: 2px; }
+    .fstat-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+    .fstat-value { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+    .fstat-value.positive { color: var(--green); }
+    .fstat-value.negative { color: var(--red); }
+    .fstat-sub { font-size: 0.7rem; color: var(--text-muted); }
+    .forecast-chart-section { padding: 12px 16px 12px 20px; display: flex; flex-direction: column; }
+    .forecast-chart-section .card-title { margin-bottom: 8px; }
+    .forecast-chart-wrap { position: relative; flex: 1; min-height: 180px; }
+
+    /* Readonly display field */
+    .input-wrapper.display-only { background: var(--bg-2); border-color: var(--border); }
+    .input-wrapper.display-only input { color: var(--amber); font-weight: 600; cursor: default; }
+
+    /* ── Inflation tab ── */
+    .inflation-inner {
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .inflation-inputs { display: flex; flex-direction: column; gap: 10px; }
+    .inflation-stats { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+    .inflation-chart-wrap { position: relative; height: 220px; }
+
+    /* ── Scenarios tab ── */
+    .scenarios-inner { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .scenarios-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .scenario-col {
+      background: var(--bg-2);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid var(--border);
+    }
+    .scenario-col-a { border-top: 3px solid var(--amber); }
+    .scenario-col-b { border-top: 3px solid var(--blue); }
+    .scenario-col-c { border-top: 3px solid var(--purple); }
+    .scenario-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .scenario-label.a { color: var(--amber); }
+    .scenario-label.b { color: var(--blue); }
+    .scenario-label.c { color: var(--purple); }
+    .scenario-fv {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 4px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .scenarios-chart-wrap { position: relative; height: 200px; }
+
+    /* ── Tax tab ── */
+    .tax-inner {
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .tax-inputs { display: flex; flex-direction: column; gap: 10px; }
+    .tax-results { display: flex; flex-direction: column; gap: 12px; }
+    .tax-result-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 10px 14px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .tax-result-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+    .tax-result-value { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+    .tax-result-value.negative { color: var(--red); }
+    .tax-result-value.positive { color: var(--green); }
+    .tax-result-sub { font-size: 0.72rem; color: var(--text-muted); }
+    .split-row { display: flex; align-items: center; gap: 10px; }
+    .split-row input[type="range"] { flex: 1; accent-color: var(--amber); }
+    .split-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
+
+    /* ── Tooltips (JS-positioned, fixed to body) ── */
+    .tip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px; height: 15px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: help;
+      flex-shrink: 0;
+      margin-left: 4px;
+      line-height: 1;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .tip:hover, .tip:focus { background: var(--amber); color: #0a0a0a; outline: none; }
+    #tipBox {
+      position: fixed;
+      z-index: 9999;
+      background: #1f2937;
+      color: #f9fafb;
+      font-size: 0.72rem;
+      font-weight: 400;
+      line-height: 1.5;
+      padding: 9px 12px;
+      border-radius: 7px;
+      width: 240px;
+      white-space: normal;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    #tipBox.visible { opacity: 1; }
+    #tipBox::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 14px;
+      border: 6px solid transparent;
+      border-top-color: #1f2937;
+    }
+
+    /* Tax payable row with inline rate badge */
+    .tax-payable-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .tax-rate-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--red);
+      background: var(--red-light);
+      border-radius: 20px;
+      padding: 2px 8px;
+      white-space: nowrap;
+    }
+
+    /* ── Sources tab ── */
+    .sources-inner { padding: 18px 22px; display: flex; flex-direction: column; gap: 16px; }
+    .sources-intro { font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; }
+    .sources-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .source-block {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      border-left: 3px solid var(--amber);
+    }
+    .source-block-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .source-formula {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.78rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 5px 8px;
+      color: var(--amber);
+      word-break: break-word;
+    }
+    .source-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+    .source-link {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--amber);
+      background: var(--amber-light);
+      border-radius: 20px;
+      padding: 3px 10px;
+      text-decoration: none;
+      border: 1px solid var(--amber-border);
+      transition: background 0.15s;
+    }
+    .source-link:hover { background: rgba(245,158,11,0.22); }
+    .sources-disclaimer {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      background: rgba(245,158,11,0.06);
+      border: 1px solid var(--amber-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+    }
+    @media (max-width: 900px) {
+      .sources-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 10px 24px 14px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto auto;
+        padding: 10px 12px;
+        gap: 10px;
+      }
+      .summary-bar   { grid-column: 1; grid-row: 1; grid-template-columns: repeat(2, 1fr); }
+      #inputsCard    { grid-row: 2; }
+      .chart-card    { grid-row: 3; }
+      #goalPanelWrap { grid-column: 1; grid-row: 4; }
+      #proWrap       { grid-column: 1; grid-row: 5; }
+
+      .stat:nth-child(2) { border-right: none; }
+      .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--border); }
+      .chart-wrapper { height: 260px; }
+
+      .goal-card { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 16px; }
+      .goal-card .input-group { flex: unset; }
+      .goal-divider { display: none; }
+      .pro-features-section { flex: unset; }
+
+      .forecast-inner {
+        grid-template-columns: 1fr;
+      }
+      .forecast-sep { display: none; }
+      .forecast-stats { padding: 0 16px 12px; flex-direction: row; flex-wrap: wrap; gap: 16px; }
+      .forecast-chart-section { padding: 0 16px 16px; }
+      .forecast-chart-wrap { min-height: 200px; }
+
+      .inflation-inner { grid-template-columns: 1fr; }
+      .scenarios-grid { grid-template-columns: 1fr; }
+      .tax-inner { grid-template-columns: 1fr; }
+
+      #proWrap.open { max-height: 2400px; }
+    }
+
+    @media (max-width: 480px) {
+      header { padding: 10px 14px; gap: 10px; }
+      header h1 { font-size: 1rem; }
+      header p { font-size: 0.78rem; }
+      .header-icon { width: 34px; height: 34px; border-radius: 8px; }
+      .header-back { display: none; }
+
+      main { padding: 8px 10px; gap: 8px; }
+
+      .summary-bar { grid-template-columns: 1fr; }
+      .stat { border-right: none !important; border-bottom: 1px solid var(--border); padding: 10px 14px; }
+      .stat:last-child { border-bottom: none; }
+      .stat-value { font-size: 1.1rem; }
+
+      .card { padding: 14px; }
+      .mode-btn { padding: 7px 8px; font-size: 0.8rem; }
+      .input-row { gap: 8px; margin-bottom: 8px; }
+      input[type="text"], input[type="number"] { font-size: 0.875rem; }
+      .chart-wrapper { height: 220px; }
+
+      .goal-card { padding: 12px 14px; }
+
+      .pro-features-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+      .pro-btn { min-width: unset; }
+      .pro-tab-btn { padding: 8px 12px; font-size: 0.75rem; }
+      .inflation-chart-wrap { height: 180px; }
+      .scenarios-chart-wrap { height: 160px; }
+    }
+
+    /* ── Print ── */
+    @media print {
+      header p, .mode-toggle, #inputsCard, #goalPanelWrap, .pro-tabs, footer { display: none !important; }
+      body { background: #fff; }
+      main { display: block; padding: 0; max-width: 100%; }
+      .summary-bar { display: grid; margin-bottom: 16px; box-shadow: none; border: 1px solid #ddd; }
+      .chart-card { box-shadow: none; border: 1px solid #ddd; margin-bottom: 16px; }
+      #proWrap { max-height: none !important; overflow: visible !important; display: block !important; }
+      #proWrap .pro-card { box-shadow: none; border: 1px solid #ddd; }
+      .pro-tab-panel { display: none !important; }
+      .pro-tab-panel.active { display: block !important; }
+      .pro-modal-backdrop { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <a href="index.html" class="header-back">← Home</a>
+    <a href="resources.html" class="header-back">How to Get Started</a>
+  </div>
+  <div class="header-icon">📈</div>
+  <div>
+    <h1>MyWealthLens</h1>
+    <p>Plan your financial future with precision</p>
+  </div>
+</header>
+
+<!-- Pro Modal -->
+<div class="pro-modal-backdrop" id="proModalBackdrop">
+  <div class="pro-modal" id="proModal">
+    <button class="pro-modal-close" id="proModalClose" type="button" aria-label="Close">✕</button>
+    <div class="pro-modal-icon">📈</div>
+    <h2>Unlock Pro Features</h2>
+    <p class="pro-modal-sub">Advanced tools to build a complete financial picture.</p>
+    <ul class="pro-feature-list">
+      <li>Forecast After Target — retirement income planning</li>
+      <li>Inflation-Adjusted Projections — real purchasing power</li>
+      <li>3-Scenario Comparison — compare strategies side by side</li>
+      <li>Tax Analysis — CGT &amp; dividends withholding impact</li>
+      <li>Export to PDF — shareable reports</li>
+    </ul>
+    <div class="pro-price-line">
+      <span class="pro-price">R39</span>
+      <span class="pro-price-period">/ month</span>
+      <span class="pro-price-cancel">✓ Cancel anytime</span>
+    </div>
+    <button class="btn-subscribe" id="btnSubscribe" type="button">Subscribe Now</button>
+    <button class="btn-restore" id="btnRestore" type="button">Already subscribed? Restore access</button>
+  </div>
+</div>
+
+<main id="app">
+
+  <!-- ── Summary Bar ── -->
+  <div class="summary-bar">
+    <div class="stat">
+      <div class="stat-label">Total Contributions</div>
+      <div class="stat-value" id="statContributions">—</div>
+      <div class="stat-sub">Capital + monthly payments</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Interest Earned</div>
+      <div class="stat-value positive" id="statInterest">—</div>
+      <div class="stat-sub" id="statInterestSub">Growth on contributions</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Final Portfolio Value</div>
+      <div class="stat-value accent" id="statFinal">—</div>
+      <div class="stat-sub" id="statFinalSub">At target age</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label" id="stat4Label">Investment Period</div>
+      <div class="stat-value" id="stat4Value">—</div>
+      <div class="stat-sub" id="stat4Sub">Years to target age</div>
+    </div>
+  </div>
+
+  <!-- ── Inputs Card ── -->
+  <div class="card" id="inputsCard">
+    <div class="card-title">Calculator</div>
+
+    <div class="mode-toggle" role="group" aria-label="Calculator mode">
+      <button class="mode-btn" data-mode="goal" type="button">Goal Solver</button>
+      <button class="mode-btn active" data-mode="projection" type="button">Projection</button>
+    </div>
+
+    <div class="input-row">
+      <div class="input-group">
+        <label for="currentAge">Current Age</label>
+        <div class="input-wrapper" id="currentAge-wrap">
+          <input type="number" id="currentAge" value="30" min="1" max="99" inputmode="numeric" aria-label="Current age" />
+          <span class="input-suffix">yrs</span>
+        </div>
+        <span class="field-error" id="currentAge-err"></span>
+      </div>
+      <div class="input-group">
+        <label for="targetAge">Target Age</label>
+        <div class="input-wrapper" id="targetAge-wrap">
+          <input type="number" id="targetAge" value="65" min="2" max="120" inputmode="numeric" aria-label="Target age" />
+          <span class="input-suffix">yrs</span>
+        </div>
+        <span class="field-error" id="targetAge-err"></span>
+      </div>
+    </div>
+
+    <div class="input-row single-col">
+      <div class="input-group">
+        <label for="initialCapital">Initial Capital</label>
+        <div class="input-wrapper" id="initialCapital-wrap">
+          <span class="input-prefix">R</span>
+          <input type="text" id="initialCapital" value="10,000" inputmode="decimal" aria-label="Initial capital" />
+          <button class="solve-btn" data-field="initialCapital" title="Auto-calculate this field" type="button" aria-label="Set initial capital as auto-solve">
+            <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+          </button>
+        </div>
+        <span class="field-error" id="initialCapital-err"></span>
+      </div>
+      <div class="input-group">
+        <label for="annualRate">Annual Growth Rate</label>
+        <div class="input-wrapper" id="annualRate-wrap">
+          <input type="text" id="annualRate" value="7.00" inputmode="decimal" aria-label="Annual growth rate" />
+          <span class="input-suffix">%</span>
+          <button class="solve-btn" data-field="annualRate" title="Auto-calculate this field" type="button" aria-label="Set annual rate as auto-solve">
+            <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+          </button>
+        </div>
+        <span class="field-error" id="annualRate-err"></span>
+      </div>
+      <div class="input-group">
+        <label for="monthlyContrib">Monthly Contribution</label>
+        <div class="input-wrapper" id="monthlyContrib-wrap">
+          <span class="input-prefix">R</span>
+          <input type="text" id="monthlyContrib" value="500" inputmode="decimal" aria-label="Monthly contribution" />
+          <button class="solve-btn" data-field="monthlyContrib" title="Auto-calculate this field" type="button" aria-label="Set monthly contribution as auto-solve">
+            <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+          </button>
+        </div>
+        <span class="field-error" id="monthlyContrib-err"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Chart Card ── -->
+  <div class="card chart-card">
+    <div class="card-title">Growth Projection</div>
+    <div class="chart-wrapper">
+      <canvas id="growthChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Goal Panel (row 3, full width) ── -->
+  <div id="goalPanelWrap">
+    <div class="card goal-card">
+      <div class="input-group">
+        <label for="targetAmount">Target Amount</label>
+        <div class="input-wrapper" id="targetAmount-wrap">
+          <span class="input-prefix">R</span>
+          <input type="text" id="targetAmount" value="1,000,000" inputmode="decimal" aria-label="Target amount" />
+        </div>
+        <span class="field-error" id="targetAmount-err"></span>
+      </div>
+      <div class="goal-divider"></div>
+      <div class="goal-solve-section">
+        <div class="solve-label">Auto-calculate:</div>
+        <div class="solve-options">
+          <button class="solve-option" data-solve="initialCapital" type="button">Initial Capital</button>
+          <button class="solve-option" data-solve="annualRate" type="button">Annual Rate</button>
+          <button class="solve-option active" data-solve="monthlyContrib" type="button">Monthly Contribution</button>
+        </div>
+        <div class="warning-banner" id="warningBanner">
+          <svg style="width:15px;height:15px;flex-shrink:0;margin-top:1px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+          <span id="warningText"></span>
+        </div>
+      </div>
+      <div class="goal-divider"></div>
+      <div class="pro-features-section">
+        <div class="pro-section-label">Pro Features:</div>
+        <div class="pro-features-bar">
+          <button class="pro-btn" data-pro="forecast" type="button" id="proBtn-forecast">
+            <span class="pro-icon">📈</span>
+            <span>Forecast</span>
+            <span class="lock-badge" id="lock-forecast">🔒</span>
+          </button>
+          <button class="pro-btn" data-pro="inflation" type="button" id="proBtn-inflation">
+            <span class="pro-icon">📊</span>
+            <span>Inflation</span>
+            <span class="lock-badge" id="lock-inflation">🔒</span>
+          </button>
+          <button class="pro-btn" data-pro="scenarios" type="button" id="proBtn-scenarios">
+            <span class="pro-icon">⚖️</span>
+            <span>Scenarios</span>
+            <span class="lock-badge" id="lock-scenarios">🔒</span>
+          </button>
+          <button class="pro-btn" data-pro="tax" type="button" id="proBtn-tax">
+            <span class="pro-icon">🧾</span>
+            <span>Tax</span>
+            <span class="lock-badge" id="lock-tax">🔒</span>
+          </button>
+          <button class="pro-btn" data-pro="export" type="button" id="proBtn-export">
+            <span class="pro-icon">📄</span>
+            <span>Export PDF</span>
+            <span class="lock-badge" id="lock-export">🔒</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Pro Section (row 4, full width) ── -->
+  <div id="proWrap">
+    <div class="card pro-card">
+
+      <!-- Tab bar -->
+      <div class="pro-tabs">
+        <button class="pro-tab-btn active" data-tab="forecast" type="button">📈 Forecast After Target</button>
+        <button class="pro-tab-btn" data-tab="inflation" type="button">📊 Inflation Adjusted</button>
+        <button class="pro-tab-btn" data-tab="scenarios" type="button">⚖️ Scenario Comparison</button>
+        <button class="pro-tab-btn" data-tab="tax" type="button">🧾 Tax Analysis</button>
+        <button class="pro-tab-btn" data-tab="sources" type="button">📚 Sources &amp; Validation</button>
+      </div>
+
+      <!-- TAB: Forecast After Target -->
+      <div class="pro-tab-panel active" id="proTab-forecast">
+        <div class="forecast-inner">
+          <div class="forecast-inputs">
+            <div class="card-title" style="margin-bottom:4px">Post-Target Forecast</div>
+            <div class="input-group">
+              <label for="fcRate">Interest Rate on Capital</label>
+              <div class="input-wrapper" id="fcRate-wrap">
+                <input type="text" id="fcRate" value="5.00" inputmode="decimal" aria-label="Post-target interest rate" />
+                <span class="input-suffix">% / yr</span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="fcIncome">Monthly Income from Capital</label>
+              <div class="input-wrapper display-only">
+                <span class="input-prefix">R</span>
+                <input type="text" id="fcIncome" readonly tabindex="-1" aria-label="Monthly income from capital" />
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="fcExpenditure">Monthly Expenditure</label>
+              <div class="input-wrapper" id="fcExpenditure-wrap">
+                <span class="input-prefix">R</span>
+                <input type="text" id="fcExpenditure" value="30,000" inputmode="decimal" aria-label="Monthly expenditure" />
+              </div>
+            </div>
+          </div>
+          <div class="forecast-sep"></div>
+          <div class="forecast-stats">
+            <div class="fstat">
+              <div class="fstat-label">Net Monthly</div>
+              <div class="fstat-value" id="fcNetMonthly">—</div>
+              <div class="fstat-sub" id="fcNetSub">Income minus expenditure</div>
+            </div>
+            <div class="fstat">
+              <div class="fstat-label">Capital Outlook</div>
+              <div class="fstat-value" id="fcOutlook">—</div>
+              <div class="fstat-sub" id="fcOutlookSub"></div>
+            </div>
+          </div>
+          <div class="forecast-sep"></div>
+          <div class="forecast-chart-section">
+            <div class="card-title">Capital Balance After Target Age</div>
+            <div class="forecast-chart-wrap">
+              <canvas id="forecastChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Inflation Adjusted -->
+      <div class="pro-tab-panel" id="proTab-inflation">
+        <div class="inflation-inner">
+          <div class="inflation-inputs">
+            <div class="card-title" style="margin-bottom:4px">Inflation Adjustment</div>
+            <div class="input-group">
+              <label for="inflationRate">Annual Inflation Rate</label>
+              <div class="input-wrapper">
+                <input type="text" id="inflationRate" value="5.50" inputmode="decimal" aria-label="Inflation rate" />
+                <span class="input-suffix">% / yr</span>
+              </div>
+            </div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;line-height:1.5">
+              Shows what your projected portfolio value will be worth in today's purchasing power.
+            </div>
+          </div>
+          <div>
+            <div class="inflation-stats">
+              <div class="fstat" style="flex:1;min-width:120px;background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px">
+                <div class="fstat-label">Nominal Value</div>
+                <div class="fstat-value accent" id="inflNominal">—</div>
+                <div class="fstat-sub">At target age</div>
+              </div>
+              <div class="fstat" style="flex:1;min-width:120px;background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px">
+                <div class="fstat-label">Real Value (Today's R)</div>
+                <div class="fstat-value positive" id="inflReal">—</div>
+                <div class="fstat-sub">Inflation-adjusted</div>
+              </div>
+              <div class="fstat" style="flex:1;min-width:120px;background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px">
+                <div class="fstat-label">Purchasing Power Lost</div>
+                <div class="fstat-value negative" id="inflLoss">—</div>
+                <div class="fstat-sub" id="inflLossPct"></div>
+              </div>
+            </div>
+            <div class="inflation-chart-wrap">
+              <canvas id="inflationChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Scenario Comparison -->
+      <div class="pro-tab-panel" id="proTab-scenarios">
+        <div class="scenarios-inner">
+          <div class="scenarios-grid">
+            <!-- Scenario A: mirrors main inputs (read-only) -->
+            <div class="scenario-col scenario-col-a">
+              <div class="scenario-label a">Scenario A (Current)</div>
+              <div class="input-group">
+                <label>Growth Rate</label>
+                <div class="input-wrapper display-only">
+                  <input type="text" id="scA-rate" readonly tabindex="-1" />
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Monthly Contribution</label>
+                <div class="input-wrapper display-only">
+                  <span class="input-prefix">R</span>
+                  <input type="text" id="scA-pmt" readonly tabindex="-1" />
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Initial Capital</label>
+                <div class="input-wrapper display-only">
+                  <span class="input-prefix">R</span>
+                  <input type="text" id="scA-p" readonly tabindex="-1" />
+                </div>
+              </div>
+              <div class="scenario-fv">
+                <div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:3px">Final Value</div>
+                <div id="scA-fv" style="color:var(--blue)">—</div>
+              </div>
+            </div>
+            <!-- Scenario B -->
+            <div class="scenario-col scenario-col-b">
+              <div class="scenario-label b">Scenario B</div>
+              <div class="input-group">
+                <label>Growth Rate</label>
+                <div class="input-wrapper">
+                  <input type="text" id="scB-rate" value="9.00" inputmode="decimal" />
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Monthly Contribution</label>
+                <div class="input-wrapper">
+                  <span class="input-prefix">R</span>
+                  <input type="text" id="scB-pmt" value="1,000" inputmode="decimal" />
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Initial Capital</label>
+                <div class="input-wrapper">
+                  <span class="input-prefix">R</span>
+                  <input type="text" id="scB-p" value="10,000" inputmode="decimal" />
+                </div>
+              </div>
+              <div class="scenario-fv">
+                <div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:3px">Final Value</div>
+                <div id="scB-fv" style="color:var(--green)">—</div>
+              </div>
+            </div>
+            <!-- Scenario C -->
+            <div class="scenario-col scenario-col-c">
+              <div class="scenario-label c">Scenario C</div>
+              <div class="input-group">
+                <label>Growth Rate</label>
+                <div class="input-wrapper">
+                  <input type="text" id="scC-rate" value="5.00" inputmode="decimal" />
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Monthly Contribution</label>
+                <div class="input-wrapper">
+                  <span class="input-prefix">R</span>
+                  <input type="text" id="scC-pmt" value="300" inputmode="decimal" />
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Initial Capital</label>
+                <div class="input-wrapper">
+                  <span class="input-prefix">R</span>
+                  <input type="text" id="scC-p" value="5,000" inputmode="decimal" />
+                </div>
+              </div>
+              <div class="scenario-fv">
+                <div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:3px">Final Value</div>
+                <div id="scC-fv" style="color:var(--purple)">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="scenarios-chart-wrap">
+            <canvas id="scenariosChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Tax Analysis -->
+      <div class="pro-tab-panel" id="proTab-tax">
+        <div class="tax-inner">
+          <div class="tax-inputs">
+            <div class="card-title" style="margin-bottom:4px">SA Tax Settings</div>
+            <div class="input-group">
+              <label for="taxCgtInclusion">
+                CGT Inclusion Rate
+                <span class="tip" tabindex="0" data-tip="SARS only taxes a portion of your capital gain — not the full amount. For individuals this is 40% (2024/25). So if your gain is R100,000, only R40,000 is included in taxable income. Source: SARS CGT Guide.">?</span>
+              </label>
+              <div class="input-wrapper">
+                <input type="text" id="taxCgtInclusion" value="40.00" inputmode="decimal" />
+                <span class="input-suffix">%</span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="taxMarginal">
+                Marginal Income Tax Rate
+                <span class="tip" tabindex="0" data-tip="The income tax rate applied to the included capital gain. SA's top marginal rate is 45% (taxable income above R1,817,001 in 2024/25). Use your personal marginal rate for a more accurate estimate. Source: SARS Tax Tables 2024/25.">?</span>
+              </label>
+              <div class="input-wrapper">
+                <input type="text" id="taxMarginal" value="45.00" inputmode="decimal" />
+                <span class="input-suffix">%</span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>
+                Effective CGT Rate
+                <span class="tip" tabindex="0" data-tip="Calculated automatically: Inclusion Rate × Marginal Rate. At the defaults (40% × 45%) this equals 18% — the maximum effective CGT rate for an individual in South Africa. This is the actual percentage of your total capital gain paid as tax.">?</span>
+              </label>
+              <div class="input-wrapper display-only">
+                <input type="text" id="taxEffectiveCgt" readonly tabindex="-1" value="18.00" />
+                <span class="input-suffix">%</span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="taxDwt">
+                Dividends Withholding Tax
+                <span class="tip" tabindex="0" data-tip="A flat 20% tax withheld on dividends paid by SA-resident companies to individual shareholders. Applied here to the income-generating (DWT) portion of your portfolio growth. Source: SARS Dividends Tax (s64E of the Income Tax Act).">?</span>
+              </label>
+              <div class="input-wrapper">
+                <input type="text" id="taxDwt" value="20.00" inputmode="decimal" />
+                <span class="input-suffix">%</span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>
+                Growth vs Income Split
+                <span class="tip tip-right" tabindex="0" data-tip="Estimate what portion of your portfolio is in growth assets (e.g. equities — CGT applies on disposal) vs income assets (e.g. dividend-paying shares or bonds — DWT applies). Default 70/30 is typical for a balanced growth portfolio.">?</span>
+              </label>
+              <div class="split-row">
+                <input type="range" id="taxSplit" min="0" max="100" value="70" />
+                <span id="taxSplitLabel" style="font-size:0.82rem;font-weight:600;color:var(--blue);width:40px;text-align:right">70%</span>
+              </div>
+              <div class="split-labels">
+                <span>Growth (CGT)</span>
+                <span>Income (DWT)</span>
+              </div>
+            </div>
+          </div>
+          <div class="tax-results">
+            <div class="card-title" style="margin-bottom:4px">Tax Impact</div>
+            <div class="tax-result-item">
+              <div class="tax-result-label">Nominal Portfolio Value</div>
+              <div class="tax-result-value accent" id="taxNominal">—</div>
+              <div class="tax-result-sub">Before tax</div>
+            </div>
+            <div class="tax-result-item">
+              <div class="tax-result-label">
+                Estimated Tax Payable
+                <span class="tip" tabindex="0" data-tip="Total estimated tax = CGT payable (gain × growth split × effective CGT rate) + DWT payable (gain × income split × DWT rate). Applied to the full accumulated gain at maturity — actual tax may be lower if gains are realised annually (R40,000 CGT annual exclusion applies each year).">?</span>
+              </div>
+              <div class="tax-payable-row">
+                <div class="tax-result-value negative" id="taxPayable">—</div>
+                <span class="tax-rate-badge" id="taxEffectiveBadge"></span>
+              </div>
+              <div class="tax-result-sub" id="taxPayableSub">CGT + dividends withholding</div>
+            </div>
+            <div class="tax-result-item">
+              <div class="tax-result-label">After-Tax Value</div>
+              <div class="tax-result-value positive" id="taxAfterTax">—</div>
+              <div class="tax-result-sub" id="taxEffectiveRate">Effective tax rate: —</div>
+            </div>
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;line-height:1.5;padding:8px;background:var(--bg);border-radius:var(--radius-sm)">
+              Indicative estimate only. Actual tax depends on annual realisation, CGT annual exclusion (R40,000 per year), and personal circumstances. Consult a registered tax advisor.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Sources & Validation -->
+      <div class="pro-tab-panel" id="proTab-sources">
+        <div class="sources-inner">
+          <div class="sources-header">
+            <div class="card-title" style="margin-bottom:4px">Calculation Methodology &amp; Sources</div>
+            <p class="sources-intro">Every formula used in this calculator is based on established financial mathematics and official South African tax legislation. The sources below allow you to independently verify each calculation.</p>
+          </div>
+
+          <div class="sources-grid">
+
+            <div class="source-block">
+              <div class="source-block-title">📐 Future Value (Compound Interest + Contributions)</div>
+              <div class="source-formula">FV = P × (1 + r/12)ⁿ + PMT × [(1 + r/12)ⁿ − 1] / (r/12)</div>
+              <p class="source-desc">Where <b>P</b> = initial capital, <b>r</b> = annual rate (decimal), <b>n</b> = months, <b>PMT</b> = monthly contribution. When r = 0, the formula simplifies to FV = P + PMT × n (no division by zero).</p>
+              <div class="source-links">
+                <a href="https://www.investopedia.com/terms/f/futurevalue.asp" target="_blank" rel="noopener" class="source-link">Investopedia — Future Value</a>
+                <a href="https://corporatefinanceinstitute.com/resources/excel/future-value-formula/" target="_blank" rel="noopener" class="source-link">CFI — Future Value Formula</a>
+                <a href="https://www.khanacademy.org/economics-finance-domain/core-finance/interest-tutorial/present-value/v/time-value-of-money" target="_blank" rel="noopener" class="source-link">Khan Academy — Time Value of Money</a>
+              </div>
+            </div>
+
+            <div class="source-block">
+              <div class="source-block-title">🎯 Goal Solvers (Reverse Calculations)</div>
+              <div class="source-formula">PMT = (FV − P×(1+r/12)ⁿ) × (r/12) / [(1+r/12)ⁿ − 1]</div>
+              <div class="source-formula" style="margin-top:4px">P = (FV − PMT×[(1+r/12)ⁿ−1]/(r/12)) / (1+r/12)ⁿ</div>
+              <p class="source-desc">Algebraic rearrangements of the FV formula. The annual rate solver has no closed-form solution and uses bisection search (120 iterations, converges to 10⁻¹⁰ precision) — a standard numerical method for root finding.</p>
+              <div class="source-links">
+                <a href="https://www.investopedia.com/terms/p/present-value-annuity.asp" target="_blank" rel="noopener" class="source-link">Investopedia — Annuity Formula</a>
+                <a href="https://en.wikipedia.org/wiki/Bisection_method" target="_blank" rel="noopener" class="source-link">Wikipedia — Bisection Method</a>
+              </div>
+            </div>
+
+            <div class="source-block">
+              <div class="source-block-title">📊 Inflation Adjustment (Real Value)</div>
+              <div class="source-formula">Real Value = Nominal FV / (1 + inflation)^years</div>
+              <p class="source-desc">Converts a future nominal rand amount into today's purchasing power by deflating at the assumed inflation rate. South Africa's long-run CPI average is approximately 5–6% per annum (SARB data).</p>
+              <div class="source-links">
+                <a href="https://www.investopedia.com/terms/r/realvalue.asp" target="_blank" rel="noopener" class="source-link">Investopedia — Real vs Nominal Value</a>
+                <a href="https://www.resbank.co.za/en/home/what-we-do/statistics/releases/inflation-statistics" target="_blank" rel="noopener" class="source-link">SARB — SA Inflation Statistics</a>
+              </div>
+            </div>
+
+            <div class="source-block">
+              <div class="source-block-title">🧾 Capital Gains Tax (CGT) — South Africa</div>
+              <div class="source-formula">Effective CGT = Inclusion Rate × Marginal Income Tax Rate</div>
+              <div class="source-formula" style="margin-top:4px">CGT Payable = Capital Gain × Growth Split × Effective CGT Rate</div>
+              <p class="source-desc">SARS taxes only a portion of your capital gain (the "inclusion amount"). For individuals the inclusion rate is <b>40%</b>. At the top marginal rate of <b>45%</b> this gives a maximum effective CGT rate of <b>18%</b>. A R40,000 annual exclusion also applies per person (not modelled here as it requires an annual realisation schedule).</p>
+              <div class="source-links">
+                <a href="https://www.sars.gov.za/types-of-tax/capital-gains-tax/" target="_blank" rel="noopener" class="source-link">SARS — Capital Gains Tax Overview</a>
+                <a href="https://www.sars.gov.za/tax-rates/income-tax/rates-of-tax-for-individuals/" target="_blank" rel="noopener" class="source-link">SARS — Individual Tax Rates 2024/25</a>
+                <a href="https://www.taxtim.com/za/blog/capital-gains-tax-in-south-africa" target="_blank" rel="noopener" class="source-link">TaxTim — CGT Explained (SA)</a>
+              </div>
+            </div>
+
+            <div class="source-block">
+              <div class="source-block-title">💰 Dividends Withholding Tax (DWT) — South Africa</div>
+              <div class="source-formula">DWT Payable = Capital Gain × Income Split × 20%</div>
+              <p class="source-desc">A flat <b>20%</b> tax withheld at source on dividends paid by SA-resident companies to individual shareholders (effective 22 February 2017). Governed by Section 64E of the Income Tax Act No. 58 of 1962.</p>
+              <div class="source-links">
+                <a href="https://www.sars.gov.za/types-of-tax/dividends-tax/" target="_blank" rel="noopener" class="source-link">SARS — Dividends Tax</a>
+                <a href="https://www.investopedia.com/terms/w/withholdingtax.asp" target="_blank" rel="noopener" class="source-link">Investopedia — Withholding Tax</a>
+              </div>
+            </div>
+
+            <div class="source-block">
+              <div class="source-block-title">📈 Forecast After Target (Capital Drawdown)</div>
+              <div class="source-formula">Balance(n) = C × (1+r/12)ⁿ − PMT × [(1+r/12)ⁿ − 1] / (r/12)</div>
+              <div class="source-formula" style="margin-top:4px">Years to Depletion = ln(PMT / (PMT − C×r/12)) / ln(1 + r/12) / 12</div>
+              <p class="source-desc">Standard present-value annuity formula in reverse — models a capital balance that earns compound interest while making regular withdrawals. Depletion occurs when expenditure exceeds monthly income from capital.</p>
+              <div class="source-links">
+                <a href="https://www.investopedia.com/terms/p/present-value-annuity.asp" target="_blank" rel="noopener" class="source-link">Investopedia — Present Value of Annuity</a>
+                <a href="https://corporatefinanceinstitute.com/resources/excel/annuity-formula/" target="_blank" rel="noopener" class="source-link">CFI — Annuity Formula</a>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="sources-disclaimer">
+            ⚠️ This calculator is for <strong>illustrative and educational purposes only</strong> and does not constitute financial or tax advice. All calculations assume consistent annual rates, no inflation on contributions, and lump-sum tax realisation at maturity. Individual circumstances vary. Always consult a qualified financial adviser and registered tax practitioner before making investment decisions.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  This calculator is for illustrative purposes only and does not constitute financial advice.
+  Returns are not guaranteed. Past performance is not indicative of future results.
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ─────────────────────────────────────────────
+  // CONFIG — update these before deploying
+  // ─────────────────────────────────────────────
+  const PRO_PAYMENT_URL  = 'YOUR_PAYMENT_LINK_HERE';
+  const PRO_RESTORE_CODE = 'WEALTHPRO2026';
+
+  // ─────────────────────────────────────────────
+  // STATE
+  // ─────────────────────────────────────────────
+  const STATE = {
+    mode: 'goal',
+    solveFor: 'monthlyContrib',
+    lastFV: 0,
+    lastTargetAge: 65,
+    lastP: 10000,
+    lastR: 0.07,
+    lastPMT: 500,
+    lastContrib: 0,
+    activeProTab: null,
+    isPro: localStorage.getItem('proUnlocked') === '1',
+  };
+
+  // ─────────────────────────────────────────────
+  // MATH
+  // ─────────────────────────────────────────────
+  const MATH = {
+    futureValue(P, annualRate, months, PMT) {
+      if (months <= 0) return P;
+      const r = annualRate / 12;
+      if (Math.abs(r) < 1e-10) return P + PMT * months;
+      const factor = Math.pow(1 + r, months);
+      return P * factor + PMT * (factor - 1) / r;
+    },
+
+    buildYearSeries(P, annualRate, PMT, startAge, endAge) {
+      const series = [];
+      const years = endAge - startAge;
+      for (let y = 0; y <= years; y++) {
+        const months = y * 12;
+        const fv = MATH.futureValue(P, annualRate, months, PMT);
+        const totalContrib = P + PMT * months;
+        series.push({
+          age: startAge + y,
+          value: Math.max(0, fv),
+          contributions: Math.max(0, totalContrib),
+          interest: Math.max(0, fv - totalContrib),
+        });
+      }
+      return series;
+    },
+
+    solvePMT(FV, P, annualRate, months) {
+      if (months <= 0) return null;
+      const r = annualRate / 12;
+      if (Math.abs(r) < 1e-10) return (FV - P) / months;
+      const factor = Math.pow(1 + r, months);
+      const denom = (factor - 1) / r;
+      if (Math.abs(denom) < 1e-12) return null;
+      return (FV - P * factor) / denom;
+    },
+
+    solveP(FV, annualRate, months, PMT) {
+      if (months <= 0) return null;
+      const r = annualRate / 12;
+      if (Math.abs(r) < 1e-10) return FV - PMT * months;
+      const factor = Math.pow(1 + r, months);
+      return (FV - PMT * (factor - 1) / r) / factor;
+    },
+
+    solveR(FV, P, months, PMT) {
+      if (months <= 0) return null;
+      const f = (rMonthly) => {
+        if (Math.abs(rMonthly) < 1e-12) return P + PMT * months - FV;
+        const factor = Math.pow(1 + rMonthly, months);
+        return P * factor + PMT * (factor - 1) / rMonthly - FV;
+      };
+      if (f(0) >= 0) return 0;
+      const hiMonthly = 1.0;
+      if (f(hiMonthly) < 0) return null;
+      let lo = 0, hi = hiMonthly;
+      for (let i = 0; i < 120; i++) {
+        const mid = (lo + hi) / 2;
+        if (f(mid) < 0) lo = mid; else hi = mid;
+        if (hi - lo < 1e-11) break;
+      }
+      return (lo + hi) / 2 * 12;
+    },
+  };
+
+  // ─────────────────────────────────────────────
+  // PRO MATH
+  // ─────────────────────────────────────────────
+  const PRO_MATH = {
+    realValue(nominalFV, inflationRate, years) {
+      if (years <= 0) return nominalFV;
+      return nominalFV / Math.pow(1 + inflationRate, years);
+    },
+
+    buildInflationSeries(P, r, PMT, inflation, startAge, endAge) {
+      const nominalSeries = MATH.buildYearSeries(P, r, PMT, startAge, endAge);
+      return nominalSeries.map((pt, i) => ({
+        age: pt.age,
+        nominal: pt.value,
+        real: PRO_MATH.realValue(pt.value, inflation, i),
+      }));
+    },
+
+    afterTaxFV(nominalFV, contributions, cgtEffective, dwtRate, growthSplit) {
+      const gain = Math.max(0, nominalFV - contributions);
+      const cgtPayable = gain * growthSplit * cgtEffective;
+      const dwtPayable = gain * (1 - growthSplit) * dwtRate;
+      return { afterTax: nominalFV - cgtPayable - dwtPayable, cgtPayable, dwtPayable };
+    },
+  };
+
+  // ─────────────────────────────────────────────
+  // FORMAT
+  // ─────────────────────────────────────────────
+  const currencyFmt = new Intl.NumberFormat('en-ZA', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const currencyFmt2 = new Intl.NumberFormat('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const FORMAT = {
+    currency(n) { return !isFinite(n) ? '—' : currencyFmt.format(Math.round(n)); },
+    currency2(n) { return !isFinite(n) ? '—' : currencyFmt2.format(n); },
+    parseCurrency(str) {
+      if (typeof str !== 'string') str = String(str);
+      const cleaned = str.replace(/[^0-9.]/g, '');
+      return cleaned === '' ? 0 : parseFloat(cleaned);
+    },
+    percent(n) { return !isFinite(n) ? '—' : n.toFixed(2); },
+    parsePercent(str) {
+      if (typeof str !== 'string') str = String(str);
+      return parseFloat(str.replace(/[^0-9.]/g, '')) || 0;
+    },
+  };
+
+  // ─────────────────────────────────────────────
+  // DOM helpers
+  // ─────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+
+  function setError(fieldId, msg) {
+    const wrap = $(fieldId + '-wrap');
+    const err  = $(fieldId + '-err');
+    if (wrap) wrap.classList.toggle('error', !!msg);
+    if (err)  err.textContent = msg || '';
+  }
+
+  function clearErrors() {
+    ['currentAge','targetAge','initialCapital','annualRate','monthlyContrib','targetAmount']
+      .forEach(id => setError(id, ''));
+  }
+
+  function showWarning(msg) {
+    const el = $('warningBanner');
+    if (msg) { el.classList.add('show'); $('warningText').textContent = msg; }
+    else { el.classList.remove('show'); }
+  }
+
+  function getCurrencyValue(id) { return FORMAT.parseCurrency($(id).value); }
+  function getRateValue(id) { return FORMAT.parsePercent($(id).value) / 100; }
+  function getIntValue(id) { return parseInt($(id).value, 10) || 0; }
+
+  function setSolvedValue(fieldId, value) {
+    const el = $(fieldId);
+    if (fieldId === 'annualRate') el.value = FORMAT.percent(value * 100);
+    else el.value = FORMAT.currency(value);
+  }
+
+  // ─────────────────────────────────────────────
+  // MAIN CHART
+  // ─────────────────────────────────────────────
+  let chart = null;
+
+  function initChart() {
+    const ctx = $('growthChart').getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 350);
+    grad.addColorStop(0, 'rgba(245,158,11,0.30)');
+    grad.addColorStop(1, 'rgba(245,158,11,0.00)');
+    const gradGreen = ctx.createLinearGradient(0, 0, 0, 350);
+    gradGreen.addColorStop(0, 'rgba(16,185,129,0.20)');
+    gradGreen.addColorStop(1, 'rgba(16,185,129,0.00)');
+
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Portfolio Value', data: [], fill: true, backgroundColor: grad, borderColor: '#f59e0b', borderWidth: 2.5, tension: 0.35, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#f59e0b', order: 1 },
+          { label: 'Contributions', data: [], fill: true, backgroundColor: gradGreen, borderColor: 'rgba(16,185,129,0.7)', borderWidth: 1.5, tension: 0.35, pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: '#10b981', order: 2 },
+          { label: 'Target', data: [], fill: false, borderColor: 'rgba(255,255,255,0.3)', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0, order: 0 },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { font: { size: 11 }, color: '#64748b', maxTicksLimit: 10 } },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.06)' },
+            ticks: { font: { size: 11 }, color: '#64748b', callback: v => {
+              if (v >= 1e9) return 'R' + (v/1e9).toFixed(1) + 'B';
+              if (v >= 1e6) return 'R' + (v/1e6).toFixed(1) + 'M';
+              if (v >= 1e3) return 'R' + (v/1e3).toFixed(0) + 'k';
+              return 'R' + v;
+            }},
+          },
+        },
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { font: { size: 12 }, color: '#64748b', boxWidth: 12, boxHeight: 12, usePointStyle: true, pointStyle: 'circle' } },
+          tooltip: {
+            backgroundColor: 'rgba(17,24,39,0.92)',
+            titleFont: { size: 12, weight: '600' },
+            bodyFont: { size: 12 },
+            padding: 12,
+            callbacks: {
+              title: items => 'Age ' + items[0].label,
+              label: item => {
+                if (!item.raw && item.raw !== 0) return null;
+                return item.dataset.label + ': R' + FORMAT.currency(item.raw);
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  function updateChart(series, targetAmount) {
+    if (!chart) return;
+    chart.data.labels = series.map(s => s.age);
+    chart.data.datasets[0].data = series.map(s => s.value);
+    chart.data.datasets[1].data = series.map(s => s.contributions);
+    chart.data.datasets[2].data = (STATE.mode === 'goal' && targetAmount > 0)
+      ? series.map(() => targetAmount)
+      : [];
+    chart.update('none');
+  }
+
+  // ─────────────────────────────────────────────
+  // CONTROLLER
+  // ─────────────────────────────────────────────
+  function recalculate() {
+    clearErrors();
+    showWarning(null);
+
+    const currentAge = getIntValue('currentAge');
+    const targetAge  = getIntValue('targetAge');
+
+    if (currentAge < 1 || currentAge > 99) { setError('currentAge', 'Enter a valid age (1–99)'); return; }
+    if (targetAge <= currentAge) { setError('targetAge', 'Must be greater than current age'); return; }
+    if (targetAge > 120) { setError('targetAge', 'Maximum target age is 120'); return; }
+
+    const months = (targetAge - currentAge) * 12;
+
+    if (STATE.mode === 'projection') {
+      const P   = getCurrencyValue('initialCapital');
+      const r   = getRateValue('annualRate');
+      const PMT = getCurrencyValue('monthlyContrib');
+
+      if (P < 0) { setError('initialCapital', 'Cannot be negative'); return; }
+      if (r < 0) { setError('annualRate', 'Cannot be negative'); return; }
+      if (PMT < 0) { setError('monthlyContrib', 'Cannot be negative'); return; }
+
+      const series = MATH.buildYearSeries(P, r, PMT, currentAge, targetAge);
+      const last   = series[series.length - 1];
+      STATE.lastFV = last.value;
+      STATE.lastTargetAge = targetAge;
+      STATE.lastP = P; STATE.lastR = r; STATE.lastPMT = PMT;
+      STATE.lastContrib = last.contributions;
+      updateChart(series, 0);
+      updateSummary(last.contributions, last.interest, last.value, targetAge - currentAge);
+
+    } else {
+      const FV = getCurrencyValue('targetAmount');
+      if (FV <= 0) { setError('targetAmount', 'Enter a positive target amount'); return; }
+
+      let P   = getCurrencyValue('initialCapital');
+      let r   = getRateValue('annualRate');
+      let PMT = getCurrencyValue('monthlyContrib');
+      let solved = null, warning = null;
+
+      if (STATE.solveFor === 'monthlyContrib') {
+        if (P < 0) { setError('initialCapital', 'Cannot be negative'); return; }
+        if (r < 0) { setError('annualRate', 'Cannot be negative'); return; }
+        solved = MATH.solvePMT(FV, P, r, months);
+        if (solved === null) { setError('targetAmount', 'Cannot solve with these inputs'); return; }
+        PMT = solved;
+        setSolvedValue('monthlyContrib', Math.max(0, solved));
+        if (solved < 0) { warning = 'Your initial capital already exceeds the goal — no monthly contribution needed.'; PMT = 0; }
+        $('monthlyContrib-wrap').classList.add('solved');
+        $('initialCapital-wrap').classList.remove('solved');
+        $('annualRate-wrap').classList.remove('solved');
+
+      } else if (STATE.solveFor === 'initialCapital') {
+        if (r < 0) { setError('annualRate', 'Cannot be negative'); return; }
+        if (PMT < 0) { setError('monthlyContrib', 'Cannot be negative'); return; }
+        solved = MATH.solveP(FV, r, months, PMT);
+        if (solved === null) { setError('targetAmount', 'Cannot solve with these inputs'); return; }
+        P = solved;
+        setSolvedValue('initialCapital', Math.max(0, solved));
+        if (solved < 0) { warning = 'Your monthly contributions alone will exceed the goal — no initial capital needed.'; P = 0; }
+        $('initialCapital-wrap').classList.add('solved');
+        $('monthlyContrib-wrap').classList.remove('solved');
+        $('annualRate-wrap').classList.remove('solved');
+
+      } else if (STATE.solveFor === 'annualRate') {
+        if (P < 0) { setError('initialCapital', 'Cannot be negative'); return; }
+        if (PMT < 0) { setError('monthlyContrib', 'Cannot be negative'); return; }
+        solved = MATH.solveR(FV, P, months, PMT);
+        if (solved === null) { setError('annualRate', 'No valid rate exists — increase contributions or capital'); $('annualRate-wrap').classList.remove('solved'); return; }
+        r = solved;
+        setSolvedValue('annualRate', solved);
+        if (solved * 100 > 50) warning = `Required annual return of ${FORMAT.percent(solved * 100)}% is unusually high and may be unrealistic.`;
+        $('annualRate-wrap').classList.add('solved');
+        $('initialCapital-wrap').classList.remove('solved');
+        $('monthlyContrib-wrap').classList.remove('solved');
+      }
+
+      if (warning) showWarning(warning);
+
+      const series = MATH.buildYearSeries(P, r, PMT, currentAge, targetAge);
+      const last   = series[series.length - 1];
+      STATE.lastFV = last.value;
+      STATE.lastTargetAge = targetAge;
+      STATE.lastP = P; STATE.lastR = r; STATE.lastPMT = PMT;
+      STATE.lastContrib = last.contributions;
+      updateChart(series, FV);
+      updateSummary(last.contributions, last.interest, last.value, targetAge - currentAge, FV);
+    }
+
+    // Sync open pro tabs
+    if (STATE.activeProTab === 'forecast') recalculateForecast();
+    if (STATE.activeProTab === 'inflation') recalculateInflation();
+    if (STATE.activeProTab === 'scenarios') recalculateScenarios();
+    if (STATE.activeProTab === 'tax') recalculateTax();
+  }
+
+  function updateSummary(contributions, interest, finalValue, years, targetAmount) {
+    $('statContributions').textContent = 'R ' + FORMAT.currency(contributions);
+    $('statInterest').textContent      = 'R ' + FORMAT.currency(interest);
+    $('statFinal').textContent         = 'R ' + FORMAT.currency(finalValue);
+
+    if (STATE.mode === 'goal' && targetAmount) {
+      $('stat4Label').textContent = 'Goal Achievement';
+      const pct = finalValue / targetAmount * 100;
+      $('stat4Value').textContent = FORMAT.percent(Math.min(pct, 100)) + '%';
+      $('stat4Sub').textContent   = finalValue >= targetAmount ? '✓ Goal reached' : 'of target at age ' + (getIntValue('currentAge') + years);
+      $('stat4Value').style.color = finalValue >= targetAmount ? 'var(--green)' : 'var(--amber)';
+    } else {
+      $('stat4Label').textContent = 'Investment Period';
+      $('stat4Value').textContent = years + ' yrs';
+      $('stat4Sub').textContent   = 'Years to target age';
+      $('stat4Value').style.color = 'var(--text)';
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // CURRENCY INPUT FORMATTING
+  // ─────────────────────────────────────────────
+  function handleCurrencyInput(e) {
+    const el = e.target;
+    const raw = el.value.replace(/[^0-9.]/g, '');
+    if (raw === '' || raw === '.') return;
+    const parts = raw.split('.');
+    const intPart = parseInt(parts[0], 10);
+    if (!isNaN(intPart)) {
+      const formatted = intPart.toLocaleString('en-ZA');
+      el.value = parts.length > 1 ? formatted + '.' + parts[1] : formatted;
+    }
+  }
+
+  function handleCurrencyBlur(e) {
+    const el = e.target;
+    el.value = FORMAT.currency(FORMAT.parseCurrency(el.value));
+  }
+
+  // ─────────────────────────────────────────────
+  // EVENTS
+  // ─────────────────────────────────────────────
+  let debounceTimer = null;
+  function debounce(fn) { clearTimeout(debounceTimer); debounceTimer = setTimeout(fn, 50); }
+
+  function bindAll() {
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        STATE.mode = btn.dataset.mode;
+        const app = $('app');
+        if (STATE.mode === 'goal') {
+          app.classList.add('goal-mode');
+          $('inputsCard').classList.add('goal-mode');
+          applySolveFor(STATE.solveFor);
+        } else {
+          app.classList.remove('goal-mode');
+          $('inputsCard').classList.remove('goal-mode');
+          // Close pro section when switching to projection
+          $('proWrap').classList.remove('open');
+          STATE.activeProTab = null;
+          document.querySelectorAll('.pro-btn').forEach(b => b.classList.remove('active'));
+          ['initialCapital','annualRate','monthlyContrib'].forEach(id => {
+            $(id).readOnly = false;
+            $(id + '-wrap').classList.remove('solved');
+          });
+        }
+        debounce(recalculate);
+      });
+    });
+
+    document.querySelectorAll('.solve-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const field = btn.dataset.solve;
+        document.querySelectorAll('.solve-option').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        STATE.solveFor = field;
+        applySolveFor(field);
+        debounce(recalculate);
+      });
+    });
+
+    document.querySelectorAll('.solve-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const field = btn.dataset.field;
+        STATE.solveFor = field;
+        document.querySelectorAll('.solve-option').forEach(b => b.classList.toggle('active', b.dataset.solve === field));
+        applySolveFor(field);
+        debounce(recalculate);
+      });
+    });
+
+    ['currentAge','targetAge','initialCapital','annualRate','monthlyContrib','targetAmount'].forEach(id => {
+      const el = $(id);
+      el.addEventListener('input', () => debounce(recalculate));
+      el.addEventListener('change', () => debounce(recalculate));
+    });
+
+    ['initialCapital','monthlyContrib','targetAmount'].forEach(id => {
+      const el = $(id);
+      el.addEventListener('input', handleCurrencyInput);
+      el.addEventListener('blur', handleCurrencyBlur);
+    });
+  }
+
+  function applySolveFor(field) {
+    document.querySelectorAll('.solve-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.field === field));
+    ['initialCapital','annualRate','monthlyContrib'].forEach(id => {
+      $(id).readOnly = (id === field && STATE.mode === 'goal');
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // PRO PAYGATE
+  // ─────────────────────────────────────────────
+  function openProModal() {
+    $('proModalBackdrop').classList.add('open');
+  }
+
+  function closeProModal() {
+    $('proModalBackdrop').classList.remove('open');
+  }
+
+  function unlockPro() {
+    STATE.isPro = true;
+    localStorage.setItem('proUnlocked', '1');
+    // Remove all lock badges
+    document.querySelectorAll('.lock-badge').forEach(el => el.style.display = 'none');
+    closeProModal();
+  }
+
+  function applyProState() {
+    if (STATE.isPro) {
+      document.querySelectorAll('.lock-badge').forEach(el => el.style.display = 'none');
+    }
+  }
+
+  function bindProModal() {
+    $('proModalClose').addEventListener('click', closeProModal);
+    $('proModalBackdrop').addEventListener('click', e => {
+      if (e.target === $('proModalBackdrop')) closeProModal();
+    });
+    $('btnSubscribe').addEventListener('click', () => {
+      window.open(PRO_PAYMENT_URL, '_blank');
+    });
+    $('btnRestore').addEventListener('click', () => {
+      const code = prompt('Enter your restore code:');
+      if (code && code.trim().toUpperCase() === PRO_RESTORE_CODE) {
+        unlockPro();
+        alert('Pro access restored! Enjoy your features.');
+      } else if (code !== null) {
+        alert('Code not recognised. Please check your email or contact support.');
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // PRO FEATURE NAVIGATION
+  // ─────────────────────────────────────────────
+  function openProFeature(tabName) {
+    // Switch tab
+    document.querySelectorAll('.pro-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+    document.querySelectorAll('.pro-tab-panel').forEach(p => p.classList.toggle('active', p.id === 'proTab-' + tabName));
+
+    // Highlight pro button
+    document.querySelectorAll('.pro-btn').forEach(b => b.classList.toggle('active', b.dataset.pro === tabName));
+
+    // Open section
+    const wrap = $('proWrap');
+    const wasOpen = wrap.classList.contains('open');
+    wrap.classList.add('open');
+    STATE.activeProTab = tabName;
+
+    // Init charts lazily and recalculate
+    if (tabName === 'forecast') {
+      if (!forecastChart) initForecastChart();
+      recalculateForecast();
+    } else if (tabName === 'inflation') {
+      if (!inflationChart) initInflationChart();
+      recalculateInflation();
+    } else if (tabName === 'scenarios') {
+      if (!scenariosChart) initScenariosChart();
+      recalculateScenarios();
+    } else if (tabName === 'tax') {
+      recalculateTax();
+    }
+    // 'sources' tab needs no calculation — content is static
+
+    if (!wasOpen) {
+      setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+    }
+  }
+
+  function bindProButtons() {
+    document.querySelectorAll('.pro-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const feature = btn.dataset.pro;
+
+        if (!STATE.isPro) {
+          openProModal();
+          return;
+        }
+
+        if (feature === 'export') {
+          window.print();
+          return;
+        }
+
+        // Toggle: if same tab is open, close it
+        if (STATE.activeProTab === feature && $('proWrap').classList.contains('open')) {
+          $('proWrap').classList.remove('open');
+          STATE.activeProTab = null;
+          document.querySelectorAll('.pro-btn').forEach(b => b.classList.remove('active'));
+          return;
+        }
+
+        openProFeature(feature);
+      });
+    });
+
+    // Tab bar clicks
+    document.querySelectorAll('.pro-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!STATE.isPro) { openProModal(); return; }
+        openProFeature(btn.dataset.tab);
+      });
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // FORECAST TAB
+  // ─────────────────────────────────────────────
+  let forecastChart = null;
+
+  const FORECAST = {
+    monthlyIncome(capital, annualRate) { return capital * (annualRate / 12); },
+    buildSeries(capital, annualRate, monthlyExpend, startAge) {
+      const r = annualRate / 12;
+      const series = [];
+      for (let y = 0; y <= 50; y++) {
+        const n = y * 12;
+        let balance;
+        if (Math.abs(r) < 1e-10) balance = capital - monthlyExpend * n;
+        else balance = capital * Math.pow(1 + r, n) - monthlyExpend * (Math.pow(1 + r, n) - 1) / r;
+        series.push({ age: startAge + y, balance: Math.max(0, balance) });
+        if (balance <= 0) break;
+      }
+      return series;
+    },
+    yearsToDepletion(capital, annualRate, monthlyExpend) {
+      const r = annualRate / 12;
+      const income = capital * r;
+      if (monthlyExpend <= 0) return Infinity;
+      if (income >= monthlyExpend) return Infinity;
+      if (Math.abs(r) < 1e-10) return capital / monthlyExpend / 12;
+      return Math.log(monthlyExpend / (monthlyExpend - capital * r)) / Math.log(1 + r) / 12;
+    },
+  };
+
+  function initForecastChart() {
+    const ctx = $('forecastChart').getContext('2d');
+    const gradBlue = ctx.createLinearGradient(0, 0, 0, 220);
+    gradBlue.addColorStop(0, 'rgba(245,158,11,0.25)');
+    gradBlue.addColorStop(1, 'rgba(245,158,11,0.00)');
+
+    forecastChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Capital Balance', data: [], fill: true, backgroundColor: gradBlue, borderColor: '#10b981', borderWidth: 2, tension: 0.3, pointRadius: 0, pointHoverRadius: 5 },
+          { label: 'Monthly Income', data: [], fill: false, borderColor: 'rgba(16,185,129,0.8)', borderWidth: 1.5, borderDash: [5, 4], tension: 0, pointRadius: 0, yAxisID: 'yIncome' },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { font: { size: 10 }, color: '#64748b', maxTicksLimit: 8 } },
+          y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { font: { size: 10 }, color: '#64748b', callback: v => { if (v >= 1e6) return 'R'+(v/1e6).toFixed(1)+'M'; if (v >= 1e3) return 'R'+(v/1e3).toFixed(0)+'k'; return 'R'+v; } } },
+          yIncome: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10 }, color: '#64748b', callback: v => { if (v >= 1e6) return 'R'+(v/1e6).toFixed(1)+'M'; if (v >= 1e3) return 'R'+(v/1e3).toFixed(0)+'k'; return 'R'+v; } } },
+        },
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { font: { size: 11 }, color: '#64748b', boxWidth: 10, usePointStyle: true, pointStyle: 'circle' } },
+          tooltip: { backgroundColor: 'rgba(17,24,39,0.92)', titleFont: { size: 11, weight: '600' }, bodyFont: { size: 11 }, padding: 10, callbacks: { title: items => 'Age ' + items[0].label, label: item => item.dataset.label + ': R' + FORMAT.currency(item.raw) } },
+        },
+      },
+    });
+  }
+
+  function recalculateForecast() {
+    const capital     = STATE.lastFV;
+    const startAge    = STATE.lastTargetAge;
+    const annualRate  = FORMAT.parsePercent($('fcRate').value) / 100;
+    const expenditure = FORMAT.parseCurrency($('fcExpenditure').value);
+
+    if (capital <= 0 || annualRate < 0) return;
+
+    const income  = FORECAST.monthlyIncome(capital, annualRate);
+    const net     = income - expenditure;
+    const series  = FORECAST.buildSeries(capital, annualRate, expenditure, startAge);
+
+    $('fcIncome').value = FORMAT.currency(income);
+
+    const netEl = $('fcNetMonthly'), netSub = $('fcNetSub');
+    netEl.textContent = (net >= 0 ? '+ ' : '− ') + 'R ' + FORMAT.currency(Math.abs(net));
+    netEl.className   = 'fstat-value ' + (net >= 0 ? 'positive' : 'negative');
+    netSub.textContent = net >= 0 ? 'Capital is growing' : 'Capital is declining';
+
+    const outEl = $('fcOutlook'), outSub = $('fcOutlookSub');
+    if (net >= 0) {
+      outEl.textContent = 'Growing'; outEl.className = 'fstat-value positive';
+      outSub.textContent = 'Expenditure covered by returns';
+    } else {
+      const yrs = FORECAST.yearsToDepletion(capital, annualRate, expenditure);
+      if (isFinite(yrs)) {
+        outEl.textContent = yrs.toFixed(1) + ' yrs'; outEl.className = 'fstat-value negative';
+        outSub.textContent = 'Until depleted (age ~' + Math.floor(startAge + yrs) + ')';
+      } else {
+        outEl.textContent = '—'; outEl.className = 'fstat-value'; outSub.textContent = '';
+      }
+    }
+
+    if (!forecastChart) return;
+    forecastChart.data.labels = series.map(s => s.age);
+    forecastChart.data.datasets[0].data = series.map(s => s.balance);
+    forecastChart.data.datasets[1].data = series.map(s => s.balance * (annualRate / 12));
+    const ctx2 = $('forecastChart').getContext('2d');
+    const depleting = net < 0;
+    const gradFill = ctx2.createLinearGradient(0, 0, 0, 220);
+    if (depleting) {
+      gradFill.addColorStop(0, 'rgba(239,68,68,0.25)');
+      gradFill.addColorStop(1, 'rgba(239,68,68,0.00)');
+      forecastChart.data.datasets[0].borderColor = '#ef4444';
+    } else {
+      gradFill.addColorStop(0, 'rgba(16,185,129,0.28)');
+      gradFill.addColorStop(1, 'rgba(16,185,129,0.00)');
+      forecastChart.data.datasets[0].borderColor = '#10b981';
+    }
+    forecastChart.data.datasets[0].backgroundColor = gradFill;
+    forecastChart.update('none');
+  }
+
+  function bindForecast() {
+    ['fcRate', 'fcExpenditure'].forEach(id => {
+      $(id).addEventListener('input', () => debounce(recalculateForecast));
+      $(id).addEventListener('change', () => debounce(recalculateForecast));
+    });
+    $('fcExpenditure').addEventListener('input', handleCurrencyInput);
+    $('fcExpenditure').addEventListener('blur', handleCurrencyBlur);
+    $('fcRate').addEventListener('blur', e => { e.target.value = FORMAT.parsePercent(e.target.value).toFixed(2); });
+  }
+
+  // ─────────────────────────────────────────────
+  // INFLATION TAB
+  // ─────────────────────────────────────────────
+  let inflationChart = null;
+
+  function initInflationChart() {
+    const ctx = $('inflationChart').getContext('2d');
+    const gradBlue = ctx.createLinearGradient(0, 0, 0, 220);
+    gradBlue.addColorStop(0, 'rgba(245,158,11,0.25)');
+    gradBlue.addColorStop(1, 'rgba(245,158,11,0.00)');
+
+    inflationChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Nominal Value', data: [], fill: true, backgroundColor: gradBlue, borderColor: '#f59e0b', borderWidth: 2, tension: 0.35, pointRadius: 0, pointHoverRadius: 4 },
+          { label: 'Real Value (Today\'s R)', data: [], fill: false, borderColor: '#a855f7', borderWidth: 2, borderDash: [6, 4], tension: 0.35, pointRadius: 0, pointHoverRadius: 4 },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { font: { size: 10 }, color: '#64748b', maxTicksLimit: 10 } },
+          y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { font: { size: 10 }, color: '#64748b', callback: v => { if (v >= 1e9) return 'R'+(v/1e9).toFixed(1)+'B'; if (v >= 1e6) return 'R'+(v/1e6).toFixed(1)+'M'; if (v >= 1e3) return 'R'+(v/1e3).toFixed(0)+'k'; return 'R'+v; } } },
+        },
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { font: { size: 11 }, color: '#64748b', boxWidth: 10, usePointStyle: true, pointStyle: 'circle' } },
+          tooltip: { backgroundColor: 'rgba(17,24,39,0.92)', titleFont: { size: 11, weight: '600' }, bodyFont: { size: 11 }, padding: 10, callbacks: { title: items => 'Age ' + items[0].label, label: item => item.dataset.label + ': R' + FORMAT.currency(item.raw) } },
+        },
+      },
+    });
+  }
+
+  function recalculateInflation() {
+    const currentAge = getIntValue('currentAge');
+    const targetAge  = getIntValue('targetAge');
+    if (targetAge <= currentAge) return;
+
+    const inflation = FORMAT.parsePercent($('inflationRate').value) / 100;
+    const series = PRO_MATH.buildInflationSeries(
+      STATE.lastP, STATE.lastR, STATE.lastPMT,
+      inflation, currentAge, targetAge
+    );
+
+    const last = series[series.length - 1];
+    $('inflNominal').textContent = 'R ' + FORMAT.currency(last.nominal);
+    $('inflReal').textContent    = 'R ' + FORMAT.currency(last.real);
+    const loss = last.nominal - last.real;
+    const lossPct = last.nominal > 0 ? (loss / last.nominal * 100) : 0;
+    $('inflLoss').textContent = 'R ' + FORMAT.currency(loss);
+    $('inflLossPct').textContent = lossPct.toFixed(1) + '% of nominal value';
+
+    if (!inflationChart) return;
+    inflationChart.data.labels = series.map(s => s.age);
+    inflationChart.data.datasets[0].data = series.map(s => s.nominal);
+    inflationChart.data.datasets[1].data = series.map(s => s.real);
+    inflationChart.update('none');
+  }
+
+  function bindInflation() {
+    $('inflationRate').addEventListener('input', () => debounce(recalculateInflation));
+    $('inflationRate').addEventListener('change', () => debounce(recalculateInflation));
+    $('inflationRate').addEventListener('blur', e => { e.target.value = FORMAT.parsePercent(e.target.value).toFixed(2); });
+  }
+
+  // ─────────────────────────────────────────────
+  // SCENARIOS TAB
+  // ─────────────────────────────────────────────
+  let scenariosChart = null;
+
+  function initScenariosChart() {
+    const ctx = $('scenariosChart').getContext('2d');
+    const gradA = ctx.createLinearGradient(0, 0, 0, 200);
+    gradA.addColorStop(0, 'rgba(245,158,11,0.18)');
+    gradA.addColorStop(1, 'rgba(245,158,11,0.00)');
+
+    scenariosChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Scenario A', data: [], fill: true, backgroundColor: gradA, borderColor: '#f59e0b', borderWidth: 2, tension: 0.35, pointRadius: 0, pointHoverRadius: 4 },
+          { label: 'Scenario B', data: [], fill: false, borderColor: '#3b82f6', borderWidth: 2, tension: 0.35, pointRadius: 0, pointHoverRadius: 4 },
+          { label: 'Scenario C', data: [], fill: false, borderColor: '#a855f7', borderWidth: 2, tension: 0.35, pointRadius: 0, pointHoverRadius: 4 },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { font: { size: 10 }, color: '#64748b', maxTicksLimit: 10 } },
+          y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { font: { size: 10 }, color: '#64748b', callback: v => { if (v >= 1e9) return 'R'+(v/1e9).toFixed(1)+'B'; if (v >= 1e6) return 'R'+(v/1e6).toFixed(1)+'M'; if (v >= 1e3) return 'R'+(v/1e3).toFixed(0)+'k'; return 'R'+v; } } },
+        },
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { font: { size: 11 }, color: '#64748b', boxWidth: 10, usePointStyle: true, pointStyle: 'circle' } },
+          tooltip: { backgroundColor: 'rgba(17,24,39,0.92)', titleFont: { size: 11, weight: '600' }, bodyFont: { size: 11 }, padding: 10, callbacks: { title: items => 'Age ' + items[0].label, label: item => item.dataset.label + ': R' + FORMAT.currency(item.raw) } },
+        },
+      },
+    });
+  }
+
+  function recalculateScenarios() {
+    const currentAge = getIntValue('currentAge');
+    const targetAge  = getIntValue('targetAge');
+    if (targetAge <= currentAge) return;
+
+    // Scenario A mirrors current main inputs
+    const aP   = STATE.lastP;
+    const aR   = STATE.lastR;
+    const aPMT = STATE.lastPMT;
+    $('scA-rate').value = FORMAT.percent(aR * 100);
+    $('scA-pmt').value  = FORMAT.currency(aPMT);
+    $('scA-p').value    = FORMAT.currency(aP);
+
+    const bR   = FORMAT.parsePercent($('scB-rate').value) / 100;
+    const bPMT = FORMAT.parseCurrency($('scB-pmt').value);
+    const bP   = FORMAT.parseCurrency($('scB-p').value);
+
+    const cR   = FORMAT.parsePercent($('scC-rate').value) / 100;
+    const cPMT = FORMAT.parseCurrency($('scC-pmt').value);
+    const cP   = FORMAT.parseCurrency($('scC-p').value);
+
+    const seriesA = MATH.buildYearSeries(aP, aR, aPMT, currentAge, targetAge);
+    const seriesB = MATH.buildYearSeries(bP, bR, bPMT, currentAge, targetAge);
+    const seriesC = MATH.buildYearSeries(cP, cR, cPMT, currentAge, targetAge);
+
+    const fvA = seriesA[seriesA.length - 1].value;
+    const fvB = seriesB[seriesB.length - 1].value;
+    const fvC = seriesC[seriesC.length - 1].value;
+
+    $('scA-fv').textContent = 'R ' + FORMAT.currency(fvA);
+    $('scB-fv').textContent = 'R ' + FORMAT.currency(fvB);
+    $('scC-fv').textContent = 'R ' + FORMAT.currency(fvC);
+
+    if (!scenariosChart) return;
+    scenariosChart.data.labels = seriesA.map(s => s.age);
+    scenariosChart.data.datasets[0].data = seriesA.map(s => s.value);
+    scenariosChart.data.datasets[1].data = seriesB.map(s => s.value);
+    scenariosChart.data.datasets[2].data = seriesC.map(s => s.value);
+    scenariosChart.update('none');
+  }
+
+  function bindScenarios() {
+    ['scB-rate','scB-pmt','scB-p','scC-rate','scC-pmt','scC-p'].forEach(id => {
+      $(id).addEventListener('input', () => { handleCurrencyInput({ target: $(id) }); debounce(recalculateScenarios); });
+      $(id).addEventListener('change', () => debounce(recalculateScenarios));
+      $(id).addEventListener('blur', e => {
+        if (id.endsWith('-pmt') || id.endsWith('-p')) handleCurrencyBlur(e);
+        else e.target.value = FORMAT.parsePercent(e.target.value).toFixed(2);
+      });
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // TAX TAB
+  // ─────────────────────────────────────────────
+  function recalculateTax() {
+    const nominalFV  = STATE.lastFV;
+    const contribs   = STATE.lastContrib;
+    const inclusion  = FORMAT.parsePercent($('taxCgtInclusion').value) / 100;
+    const marginal   = FORMAT.parsePercent($('taxMarginal').value) / 100;
+    const cgtEff     = inclusion * marginal;
+    const dwt        = FORMAT.parsePercent($('taxDwt').value) / 100;
+    const split      = parseInt($('taxSplit').value) / 100;
+
+    $('taxEffectiveCgt').value = FORMAT.percent(cgtEff * 100);
+
+    if (nominalFV <= 0) return;
+
+    const { afterTax, cgtPayable, dwtPayable } = PRO_MATH.afterTaxFV(nominalFV, contribs, cgtEff, dwt, split);
+    const totalTax = cgtPayable + dwtPayable;
+    const effRate  = nominalFV > 0 ? (totalTax / nominalFV * 100) : 0;
+
+    $('taxNominal').textContent       = 'R ' + FORMAT.currency(nominalFV);
+    $('taxPayable').textContent       = '− R ' + FORMAT.currency(totalTax);
+    $('taxEffectiveBadge').textContent = effRate.toFixed(1) + '% of portfolio';
+    $('taxPayableSub').textContent    = `CGT: R ${FORMAT.currency(cgtPayable)} · DWT: R ${FORMAT.currency(dwtPayable)}`;
+    $('taxAfterTax').textContent      = 'R ' + FORMAT.currency(afterTax);
+    $('taxEffectiveRate').textContent = `Effective tax rate on total gain: ${nominalFV > 0 ? (totalTax / Math.max(1, nominalFV - contribs) * 100).toFixed(1) : '0.0'}%`;
+  }
+
+  function bindTax() {
+    ['taxCgtInclusion','taxMarginal','taxDwt'].forEach(id => {
+      $(id).addEventListener('input', () => debounce(recalculateTax));
+      $(id).addEventListener('change', () => debounce(recalculateTax));
+      $(id).addEventListener('blur', e => { e.target.value = FORMAT.parsePercent(e.target.value).toFixed(2); });
+    });
+    $('taxSplit').addEventListener('input', () => {
+      $('taxSplitLabel').textContent = $('taxSplit').value + '%';
+      debounce(recalculateTax);
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // TOOLTIP ENGINE (fixed-position, body-appended)
+  // ─────────────────────────────────────────────
+  function initTooltips() {
+    const box = document.createElement('div');
+    box.id = 'tipBox';
+    document.body.appendChild(box);
+
+    let hideTimer = null;
+
+    function showTip(el) {
+      clearTimeout(hideTimer);
+      const text = el.getAttribute('data-tip');
+      if (!text) return;
+      box.textContent = text;
+      box.classList.add('visible');
+      positionTip(el);
+    }
+
+    function hideTip() {
+      hideTimer = setTimeout(() => box.classList.remove('visible'), 80);
+    }
+
+    function positionTip(el) {
+      const r = el.getBoundingClientRect();
+      const boxW = 240;
+      const margin = 8;
+      // Prefer above; fall back to below if not enough space
+      let top = r.top - box.offsetHeight - margin;
+      if (top < 8) top = r.bottom + margin;
+      // Horizontal: align left edge to element, but clamp to viewport
+      let left = r.left;
+      if (left + boxW > window.innerWidth - 8) left = window.innerWidth - boxW - 8;
+      if (left < 8) left = 8;
+      box.style.top  = top + 'px';
+      box.style.left = left + 'px';
+    }
+
+    document.querySelectorAll('.tip').forEach(el => {
+      // Mouse
+      el.addEventListener('mouseenter', () => showTip(el));
+      el.addEventListener('mouseleave', hideTip);
+      // Focus (keyboard)
+      el.addEventListener('focus', () => showTip(el));
+      el.addEventListener('blur', hideTip);
+      // Touch: toggle on tap
+      el.addEventListener('touchstart', e => {
+        e.preventDefault();
+        if (box.classList.contains('visible') && box.textContent === el.getAttribute('data-tip')) {
+          hideTip();
+        } else {
+          showTip(el);
+        }
+      }, { passive: false });
+    });
+
+    // Hide on outside click (touch)
+    document.addEventListener('touchstart', e => {
+      if (!e.target.classList.contains('tip')) hideTip();
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // INIT
+  // ─────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    // Check for post-payment redirect
+    const params = new URLSearchParams(location.search);
+    if (params.get('upgrade') === 'success') {
+      unlockPro();
+      history.replaceState({}, '', location.pathname);
+    }
+
+    // Start in goal mode
+    $('app').classList.add('goal-mode');
+    $('inputsCard').classList.add('goal-mode');
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === 'goal'));
+
+    applyProState();
+    initChart();
+    bindAll();
+    bindForecast();
+    bindInflation();
+    bindScenarios();
+    bindTax();
+    bindProModal();
+    bindProButtons();
+    initTooltips();
+    applySolveFor(STATE.solveFor);
+    recalculate();
+  });
+
+})();
+</script>
+</body>
+</html>
