@@ -261,6 +261,11 @@
 
     .goal-mode .solve-btn { display: flex; }
 
+    #targetAmount-row { display: none; }
+    #app.goal-mode #targetAmount-row { display: grid; }
+
+    .mode-btn .tip { pointer-events: auto; }
+
     /* Error message */
     .field-error {
       font-size: 0.75rem;
@@ -892,13 +897,16 @@
       header h1 { font-size: 1rem; }
       header p { font-size: 0.78rem; }
       .header-icon { width: 34px; height: 34px; border-radius: 8px; }
-      .header-back { display: none; }
+      .header-back:not(.header-home) { display: none; }
+      .header-home { font-size: 0.72rem; padding: 4px 8px; }
 
       main { padding: 8px 10px; gap: 8px; }
 
-      .summary-bar { grid-template-columns: 1fr; }
-      .stat { border-right: none !important; border-bottom: 1px solid var(--border); padding: 10px 14px; }
-      .stat:last-child { border-bottom: none; }
+      .summary-bar { grid-template-columns: repeat(2, 1fr); }
+      .stat { padding: 10px 14px; }
+      .stat:nth-child(2) { border-right: none; }
+      .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--border); }
+      .stat:nth-child(3), .stat:nth-child(4) { border-bottom: none; }
       .stat-value { font-size: 1.1rem; }
 
       .card { padding: 14px; }
@@ -935,7 +943,7 @@
 
 <header>
   <div style="display:flex;gap:12px;align-items:center;">
-    <a href="index.html" class="header-back">← Home</a>
+    <a href="index.html" class="header-back header-home">← Home</a>
     <a href="resources.html" class="header-back">How to Get Started</a>
   </div>
   <div class="header-icon">📈</div>
@@ -1000,8 +1008,8 @@
     <div class="card-title">Calculator</div>
 
     <div class="mode-toggle" role="group" aria-label="Calculator mode">
-      <button class="mode-btn" data-mode="goal" type="button">Goal Solver</button>
-      <button class="mode-btn active" data-mode="projection" type="button">Projection</button>
+      <button class="mode-btn" data-mode="goal" type="button">Goal Solver <span class="tip" data-tip="Set a target amount and auto-calculate the monthly contribution, initial capital, or growth rate needed to reach it." tabindex="-1">?</span></button>
+      <button class="mode-btn active" data-mode="projection" type="button">Projection <span class="tip" data-tip="Enter your contributions and growth rate to see your projected portfolio value at your target age." tabindex="-1">?</span></button>
     </div>
 
     <div class="input-row">
@@ -1020,6 +1028,17 @@
           <span class="input-suffix">yrs</span>
         </div>
         <span class="field-error" id="targetAge-err"></span>
+      </div>
+    </div>
+
+    <div class="input-row single-col" id="targetAmount-row">
+      <div class="input-group">
+        <label for="targetAmount">Target Amount</label>
+        <div class="input-wrapper" id="targetAmount-wrap">
+          <span class="input-prefix">R</span>
+          <input type="text" id="targetAmount" value="1,000,000" inputmode="decimal" aria-label="Target amount" />
+        </div>
+        <span class="field-error" id="targetAmount-err"></span>
       </div>
     </div>
 
@@ -1071,15 +1090,6 @@
   <!-- ── Goal Panel (row 3, full width) ── -->
   <div id="goalPanelWrap">
     <div class="card goal-card">
-      <div class="input-group">
-        <label for="targetAmount">Target Amount</label>
-        <div class="input-wrapper" id="targetAmount-wrap">
-          <span class="input-prefix">R</span>
-          <input type="text" id="targetAmount" value="1,000,000" inputmode="decimal" aria-label="Target amount" />
-        </div>
-        <span class="field-error" id="targetAmount-err"></span>
-      </div>
-      <div class="goal-divider"></div>
       <div class="goal-solve-section">
         <div class="solve-label">Auto-calculate:</div>
         <div class="solve-options">
