@@ -314,7 +314,7 @@
 
     /* ── Chart card ── */
     .chart-card { display: flex; flex-direction: column; }
-    .chart-wrapper { position: relative; height: 320px; }
+    .chart-wrapper { position: relative; flex: 1 1 200px; min-height: 200px; }
 
     /* ── Summary bar ── */
     .summary-bar {
@@ -939,7 +939,7 @@
     }
 
     /* ── TFSA Panel ── */
-    #tfsaPanelWrap { display: none; margin-bottom: 12px; }
+    #tfsaPanelWrap { grid-column: 1; grid-row: 3; display: none; }
     #app.tfsa-mode #tfsaPanelWrap { display: block; }
     .tfsa-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
     .tfsa-panel-title { font-size: 0.8rem; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
@@ -1869,8 +1869,8 @@
         datasets: [
           { label: 'Portfolio Value', data: [], fill: true, backgroundColor: grad, borderColor: '#f59e0b', borderWidth: 2.5, tension: 0.35, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#f59e0b', order: 1 },
           { label: 'Contributions', data: [], fill: true, backgroundColor: gradGreen, borderColor: 'rgba(16,185,129,0.7)', borderWidth: 1.5, tension: 0.35, pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: '#10b981', order: 2 },
-          { label: 'Target', data: [], fill: false, borderColor: 'rgba(255,255,255,0.3)', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0, order: 0 },
-          { label: 'Taxed Equivalent', data: [], fill: false, borderColor: 'rgba(100,116,139,0.7)', borderWidth: 1.5, borderDash: [5, 3], pointRadius: 0, tension: 0.35, hidden: true, order: 3 },
+          { label: 'Target', data: [], fill: false, borderColor: 'rgba(167,139,250,0.9)', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0, hidden: true, order: 0 },
+          { label: 'Taxed Equivalent', data: [], fill: false, borderColor: 'rgba(251,146,60,0.9)', borderWidth: 2, borderDash: [5, 3], pointRadius: 0, tension: 0.35, hidden: true, order: 3 },
         ],
       },
       options: {
@@ -1890,7 +1890,7 @@
           },
         },
         plugins: {
-          legend: { position: 'top', align: 'end', labels: { font: { size: 12 }, color: '#64748b', boxWidth: 12, boxHeight: 12, usePointStyle: true, pointStyle: 'circle' } },
+          legend: { position: 'top', align: 'end', labels: { font: { size: 12 }, color: '#94a3b8', boxWidth: 24, boxHeight: 2, filter: (item, data) => !data.datasets[item.datasetIndex].hidden } },
           tooltip: {
             backgroundColor: 'rgba(17,24,39,0.92)',
             titleFont: { size: 12, weight: '600' },
@@ -1911,12 +1911,12 @@
 
   function updateChart(series, targetAmount) {
     if (!chart) return;
+    const showTarget = STATE.mode === 'goal' && targetAmount > 0;
     chart.data.labels = series.map(s => s.age);
     chart.data.datasets[0].data = series.map(s => s.value);
     chart.data.datasets[1].data = series.map(s => s.contributions);
-    chart.data.datasets[2].data = (STATE.mode === 'goal' && targetAmount > 0)
-      ? series.map(() => targetAmount)
-      : [];
+    chart.data.datasets[2].data = showTarget ? series.map(() => targetAmount) : [];
+    chart.data.datasets[2].hidden = !showTarget;
     chart.data.datasets[3].data = [];
     chart.data.datasets[3].hidden = true;
     chart.update('none');
