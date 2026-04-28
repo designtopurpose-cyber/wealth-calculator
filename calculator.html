@@ -937,6 +937,54 @@
       .pro-tab-panel.active { display: block !important; }
       .pro-modal-backdrop { display: none !important; }
     }
+
+    /* ── TFSA Panel ── */
+    #tfsaPanelWrap { display: none; margin-bottom: 12px; }
+    #app.tfsa-mode #tfsaPanelWrap { display: block; }
+    .tfsa-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .tfsa-panel-title { font-size: 0.8rem; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+    .tfsa-limit-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; flex-wrap: wrap; }
+    .tfsa-limit-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(16,185,129,0.12); color: var(--green); white-space: nowrap; }
+    .tfsa-limit-badge.over { background: rgba(245,158,11,0.12); color: var(--amber); }
+    .tfsa-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .tfsa-stat { background: var(--bg); border-radius: var(--radius-sm); padding: 10px 12px; }
+    .tfsa-stat-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px; }
+    .tfsa-stat-value { font-size: 0.95rem; font-weight: 700; color: var(--text); font-family: var(--serif); }
+    .tfsa-progress-wrap { margin-bottom: 14px; }
+    .tfsa-progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; margin-bottom: 4px; }
+    .tfsa-progress-fill { height: 100%; background: var(--green); border-radius: 99px; transition: width 0.3s ease; }
+    .tfsa-progress-fill.near { background: var(--amber); }
+    .tfsa-progress-label { font-size: 0.72rem; color: var(--text-muted); }
+    .tfsa-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); margin-bottom: 10px; }
+    .tfsa-compare-item { background: var(--bg); border-radius: var(--radius-sm); padding: 10px 12px; }
+    .tfsa-compare-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px; }
+    .tfsa-compare-value { font-size: 1rem; font-weight: 700; font-family: var(--serif); }
+    .tfsa-compare-value.tfsa-val { color: var(--green); }
+    .tfsa-compare-value.taxed-val { color: var(--text-muted); }
+    .tfsa-saving-row { padding: 8px 12px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.18); border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--green); display: flex; justify-content: space-between; align-items: center; }
+
+    /* ── RA Section ── */
+    .ra-section { margin-top: 16px; padding: 14px 16px; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    .ra-section-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+    .ra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .ra-result-item { background: var(--card); border-radius: var(--radius-sm); padding: 10px 12px; }
+    .ra-result-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px; }
+    .ra-result-value { font-size: 0.95rem; font-weight: 700; color: var(--text); font-family: var(--serif); }
+    .ra-result-value.positive { color: var(--green); }
+    .ra-note { font-size: 0.7rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
+
+    /* ── Income field & SARS modal ── */
+    .sars-link { display: inline-block; font-size: 0.75rem; color: var(--amber); background: none; border: none; padding: 0; cursor: pointer; margin-top: 3px; }
+    .sars-link:hover { text-decoration: underline; }
+    #taxMarginal-wrap.auto-set { border-color: var(--green); background: rgba(16,185,129,0.05); }
+    #taxMarginal-wrap.auto-set input { color: var(--green); }
+    .sars-modal { max-width: 480px; }
+    .sars-table-wrap { margin-top: 12px; overflow-x: auto; }
+    .sars-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .sars-table th { text-align: left; padding: 7px 10px; background: rgba(255,255,255,0.04); color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+    .sars-table td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text); }
+    .sars-table tr.active-row td { background: rgba(245,158,11,0.10); color: var(--amber); font-weight: 600; }
+    .sars-modal-note { font-size: 0.72rem; color: var(--text-muted); margin-top: 12px; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -977,6 +1025,32 @@
   </div>
 </div>
 
+<!-- SARS Tax Table Modal -->
+<div class="pro-modal-backdrop" id="sarsModalBackdrop">
+  <div class="pro-modal sars-modal">
+    <button class="pro-modal-close" id="sarsModalClose" type="button" aria-label="Close">✕</button>
+    <h2>SARS Individual Tax Tables 2024/25</h2>
+    <p class="pro-modal-sub">Marginal rates for individuals. Only income within each bracket is taxed at that rate.</p>
+    <div class="sars-table-wrap">
+      <table class="sars-table">
+        <thead>
+          <tr><th>Taxable Income</th><th>Marginal Rate</th></tr>
+        </thead>
+        <tbody>
+          <tr id="sarsRow0"><td>R0 – R237,100</td><td>18%</td></tr>
+          <tr id="sarsRow1"><td>R237,101 – R370,500</td><td>26%</td></tr>
+          <tr id="sarsRow2"><td>R370,501 – R512,800</td><td>31%</td></tr>
+          <tr id="sarsRow3"><td>R512,801 – R673,000</td><td>36%</td></tr>
+          <tr id="sarsRow4"><td>R673,001 – R857,900</td><td>39%</td></tr>
+          <tr id="sarsRow5"><td>R857,901 – R1,817,000</td><td>41%</td></tr>
+          <tr id="sarsRow6"><td>R1,817,001+</td><td>45%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sars-modal-note">Source: SARS 2024/25. Enter your annual taxable income in the Tax Analysis tab to auto-highlight your bracket and set your marginal rate.</p>
+  </div>
+</div>
+
 <main id="app">
 
   <!-- ── Summary Bar ── -->
@@ -1010,6 +1084,7 @@
     <div class="mode-toggle" role="group" aria-label="Calculator mode">
       <button class="mode-btn" data-mode="goal" type="button">Goal Solver <span class="tip" data-tip="Set a target amount and auto-calculate the monthly contribution, initial capital, or growth rate needed to reach it." tabindex="-1">?</span></button>
       <button class="mode-btn active" data-mode="projection" type="button">Projection <span class="tip" data-tip="Enter your contributions and growth rate to see your projected portfolio value at your target age." tabindex="-1">?</span></button>
+      <button class="mode-btn" data-mode="tfsa" type="button">TFSA <span class="tip" data-tip="Model your Tax Free Savings Account. Track annual (R46,000) and lifetime (R500,000) TFSA limits and see how much tax you save versus an equivalent taxed account." tabindex="-1">?</span></button>
     </div>
 
     <div class="input-row">
@@ -1075,6 +1150,46 @@
           </button>
         </div>
         <span class="field-error" id="monthlyContrib-err"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TFSA Panel (visible in TFSA mode only) ── -->
+  <div id="tfsaPanelWrap">
+    <div class="tfsa-panel">
+      <div class="tfsa-panel-title">TFSA Summary</div>
+      <div class="tfsa-limit-row">
+        Annual contribution: <strong id="tfsaAnnualAmt">—</strong>
+        <span class="tfsa-limit-badge" id="tfsaLimitBadge">within R46,000 annual limit</span>
+      </div>
+      <div class="tfsa-stats">
+        <div class="tfsa-stat">
+          <div class="tfsa-stat-label">Annual Limit (2025)</div>
+          <div class="tfsa-stat-value">R 46,000</div>
+        </div>
+        <div class="tfsa-stat">
+          <div class="tfsa-stat-label">Lifetime Limit</div>
+          <div class="tfsa-stat-value">R 500,000</div>
+        </div>
+      </div>
+      <div class="tfsa-progress-wrap">
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px">Lifetime contributions toward R500,000 cap</div>
+        <div class="tfsa-progress-bar"><div class="tfsa-progress-fill" id="tfsaProgressFill" style="width:0%"></div></div>
+        <div class="tfsa-progress-label" id="tfsaProgressLabel">—</div>
+      </div>
+      <div class="tfsa-compare">
+        <div class="tfsa-compare-item">
+          <div class="tfsa-compare-label">TFSA Portfolio (tax-free)</div>
+          <div class="tfsa-compare-value tfsa-val" id="tfsaValue">—</div>
+        </div>
+        <div class="tfsa-compare-item">
+          <div class="tfsa-compare-label">Equivalent Taxed Account</div>
+          <div class="tfsa-compare-value taxed-val" id="tfsaTaxedValue">—</div>
+        </div>
+      </div>
+      <div class="tfsa-saving-row">
+        <span>Tax saved by using a TFSA</span>
+        <strong id="tfsaTaxSaved">—</strong>
       </div>
     </div>
   </div>
@@ -1344,6 +1459,17 @@
           <div class="tax-inputs">
             <div class="card-title" style="margin-bottom:4px">SA Tax Settings</div>
             <div class="input-group">
+              <label for="taxableIncome">
+                Annual Taxable Income <span style="font-size:0.72rem;color:var(--text-muted)">(optional)</span>
+                <span class="tip" tabindex="0" data-tip="Your income is used only to look up your SARS tax bracket — it auto-fills your marginal rate below. No data is sent anywhere. Nothing leaves your browser.">?</span>
+              </label>
+              <div class="input-wrapper" id="taxableIncome-wrap">
+                <span class="input-prefix">R</span>
+                <input type="text" id="taxableIncome" inputmode="decimal" placeholder="e.g. 500,000" aria-label="Annual taxable income" />
+              </div>
+              <button type="button" class="sars-link" id="openSarsTable">View SARS 2024/25 tax tables →</button>
+            </div>
+            <div class="input-group">
               <label for="taxCgtInclusion">
                 CGT Inclusion Rate
                 <span class="tip" tabindex="0" data-tip="SARS only taxes a portion of your capital gain — not the full amount. For individuals this is 40% (2024/25). So if your gain is R100,000, only R40,000 is included in taxable income. Source: SARS CGT Guide.">?</span>
@@ -1358,7 +1484,7 @@
                 Marginal Income Tax Rate
                 <span class="tip" tabindex="0" data-tip="The income tax rate applied to the included capital gain. SA's top marginal rate is 45% (taxable income above R1,817,001 in 2024/25). Use your personal marginal rate for a more accurate estimate. Source: SARS Tax Tables 2024/25.">?</span>
               </label>
-              <div class="input-wrapper">
+              <div class="input-wrapper" id="taxMarginal-wrap">
                 <input type="text" id="taxMarginal" value="45.00" inputmode="decimal" />
                 <span class="input-suffix">%</span>
               </div>
@@ -1425,6 +1551,34 @@
               Indicative estimate only. Actual tax depends on annual realisation, CGT annual exclusion (R40,000 per year), and personal circumstances. Consult a registered tax advisor.
             </div>
           </div>
+        </div>
+        <div class="ra-section">
+          <div class="ra-section-title">Retirement Annuity (RA) Deduction</div>
+          <div class="input-group" style="margin-bottom:10px">
+            <label for="raContrib">
+              Annual RA Contribution
+              <span class="tip" tabindex="0" data-tip="Your annual contribution to a Retirement Annuity fund. SARS allows a deduction of up to 27.5% of your taxable income (max R350,000/year). Enter your annual income above to auto-calculate your personal limit.">?</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-prefix">R</span>
+              <input type="text" id="raContrib" value="0" inputmode="decimal" aria-label="Annual RA contribution" />
+            </div>
+          </div>
+          <div class="ra-grid">
+            <div class="ra-result-item">
+              <div class="ra-result-label">Deduction Limit <span class="tip" tabindex="0" data-tip="Lower of 27.5% of your taxable income or R350,000/year. Enter your income in the field above to personalise this limit.">?</span></div>
+              <div class="ra-result-value" id="raLimit">R 350,000</div>
+            </div>
+            <div class="ra-result-item">
+              <div class="ra-result-label">Tax Saving</div>
+              <div class="ra-result-value positive" id="raTaxSaving">R 0</div>
+            </div>
+            <div class="ra-result-item">
+              <div class="ra-result-label">After-Tax Cost of RA</div>
+              <div class="ra-result-value" id="raAfterTaxCost">R 0</div>
+            </div>
+          </div>
+          <p class="ra-note">RA funds are locked until age 55. Two-thirds of the fund must be used to purchase an annuity at retirement. Consult a financial advisor for suitability.</p>
         </div>
       </div>
 
@@ -1716,6 +1870,7 @@
           { label: 'Portfolio Value', data: [], fill: true, backgroundColor: grad, borderColor: '#f59e0b', borderWidth: 2.5, tension: 0.35, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#f59e0b', order: 1 },
           { label: 'Contributions', data: [], fill: true, backgroundColor: gradGreen, borderColor: 'rgba(16,185,129,0.7)', borderWidth: 1.5, tension: 0.35, pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: '#10b981', order: 2 },
           { label: 'Target', data: [], fill: false, borderColor: 'rgba(255,255,255,0.3)', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0, order: 0 },
+          { label: 'Taxed Equivalent', data: [], fill: false, borderColor: 'rgba(100,116,139,0.7)', borderWidth: 1.5, borderDash: [5, 3], pointRadius: 0, tension: 0.35, hidden: true, order: 3 },
         ],
       },
       options: {
@@ -1762,6 +1917,20 @@
     chart.data.datasets[2].data = (STATE.mode === 'goal' && targetAmount > 0)
       ? series.map(() => targetAmount)
       : [];
+    chart.data.datasets[3].data = [];
+    chart.data.datasets[3].hidden = true;
+    chart.update('none');
+  }
+
+  function updateChartTfsaLine(taxedSeries) {
+    if (!chart) return;
+    if (taxedSeries && taxedSeries.length) {
+      chart.data.datasets[3].data = taxedSeries.map(s => s.value);
+      chart.data.datasets[3].hidden = false;
+    } else {
+      chart.data.datasets[3].data = [];
+      chart.data.datasets[3].hidden = true;
+    }
     chart.update('none');
   }
 
@@ -1862,6 +2031,7 @@
     if (STATE.activeProTab === 'inflation') recalculateInflation();
     if (STATE.activeProTab === 'scenarios') recalculateScenarios();
     if (STATE.activeProTab === 'tax') recalculateTax();
+    if (STATE.mode === 'tfsa') recalculateTfsa();
   }
 
   function updateSummary(contributions, interest, finalValue, years, targetAmount) {
@@ -1918,15 +2088,20 @@
         const app = $('app');
         if (STATE.mode === 'goal') {
           app.classList.add('goal-mode');
+          app.classList.remove('tfsa-mode');
           $('inputsCard').classList.add('goal-mode');
           applySolveFor(STATE.solveFor);
         } else {
           app.classList.remove('goal-mode');
           $('inputsCard').classList.remove('goal-mode');
-          // Close pro section when switching to projection
-          $('proWrap').classList.remove('open');
-          STATE.activeProTab = null;
-          document.querySelectorAll('.pro-btn').forEach(b => b.classList.remove('active'));
+          if (STATE.mode === 'tfsa') {
+            app.classList.add('tfsa-mode');
+          } else {
+            app.classList.remove('tfsa-mode');
+            $('proWrap').classList.remove('open');
+            STATE.activeProTab = null;
+            document.querySelectorAll('.pro-btn').forEach(b => b.classList.remove('active'));
+          }
           ['initialCapital','annualRate','monthlyContrib'].forEach(id => {
             $(id).readOnly = false;
             $(id + '-wrap').classList.remove('solved');
@@ -2399,6 +2574,144 @@
     $('taxPayableSub').textContent    = `CGT: R ${FORMAT.currency(cgtPayable)} · DWT: R ${FORMAT.currency(dwtPayable)}`;
     $('taxAfterTax').textContent      = 'R ' + FORMAT.currency(afterTax);
     $('taxEffectiveRate').textContent = `Effective tax rate on total gain: ${nominalFV > 0 ? (totalTax / Math.max(1, nominalFV - contribs) * 100).toFixed(1) : '0.0'}%`;
+    recalculateRA();
+    if (STATE.mode === 'tfsa') recalculateTfsa();
+  }
+
+  // ─────────────────────────────────────────────
+  // SARS 2024/25 TAX BRACKETS
+  // ─────────────────────────────────────────────
+  const SARS_2024 = [
+    { max: 237100,   rate: 18 },
+    { max: 370500,   rate: 26 },
+    { max: 512800,   rate: 31 },
+    { max: 673000,   rate: 36 },
+    { max: 857900,   rate: 39 },
+    { max: 1817000,  rate: 41 },
+    { max: Infinity, rate: 45 },
+  ];
+
+  function sarsRateForIncome(income) {
+    for (const bracket of SARS_2024) {
+      if (income <= bracket.max) return bracket.rate;
+    }
+    return 45;
+  }
+
+  function handleIncomeInput() {
+    const raw = FORMAT.parseCurrency($('taxableIncome').value);
+    const wrap = $('taxMarginal-wrap');
+    if (!raw || raw <= 0) {
+      $('taxMarginal').readOnly = false;
+      wrap.classList.remove('auto-set');
+      SARS_2024.forEach((_, i) => { const r = $('sarsRow' + i); if (r) r.classList.remove('active-row'); });
+      recalculateRA();
+      return;
+    }
+    const rate = sarsRateForIncome(raw);
+    $('taxMarginal').value = rate.toFixed(2);
+    $('taxMarginal').readOnly = true;
+    wrap.classList.add('auto-set');
+    SARS_2024.forEach((b, i) => {
+      const r = $('sarsRow' + i);
+      if (r) r.classList.toggle('active-row', raw <= b.max && (i === 0 || raw > SARS_2024[i - 1].max));
+    });
+    recalculateTax();
+    recalculateRA();
+  }
+
+  // ─────────────────────────────────────────────
+  // TFSA MODE
+  // ─────────────────────────────────────────────
+  function recalculateTfsa() {
+    const FV      = STATE.lastFV;
+    const contribs = STATE.lastContrib;
+    const PMT    = FORMAT.parseCurrency($('monthlyContrib').value);
+    const P      = FORMAT.parseCurrency($('initialCapital').value);
+    const r      = FORMAT.parsePercent($('annualRate').value) / 100;
+    const currentAge = getIntValue('currentAge');
+    const targetAge  = getIntValue('targetAge');
+    const years  = Math.max(0, targetAge - currentAge);
+
+    const annualContrib   = PMT * 12;
+    const lifetimeContrib = Math.max(P, 0) + annualContrib * years;
+    const overLimit       = annualContrib > 46000;
+    const lifetimePct     = Math.min(lifetimeContrib / 500000 * 100, 100);
+
+    const inclusion = FORMAT.parsePercent($('taxCgtInclusion').value) / 100;
+    const marginal  = FORMAT.parsePercent($('taxMarginal').value) / 100;
+    const cgtEff    = inclusion * marginal;
+    const dwt       = FORMAT.parsePercent($('taxDwt').value) / 100;
+    const split     = parseInt($('taxSplit').value) / 100;
+
+    let taxedFV = FV;
+    if (FV > 0 && contribs > 0) {
+      taxedFV = PRO_MATH.afterTaxFV(FV, contribs, cgtEff, dwt, split).afterTax;
+    }
+    const taxSaved = Math.max(0, FV - taxedFV);
+
+    const taxedSeries = MATH.buildYearSeries(P, r, PMT, currentAge, targetAge).map(s => {
+      const gain = Math.max(0, s.value - s.contributions);
+      const cgtP = gain * split * cgtEff;
+      const dwtP = gain * (1 - split) * dwt;
+      return { age: s.age, value: Math.max(0, s.value - cgtP - dwtP) };
+    });
+
+    $('tfsaAnnualAmt').textContent = 'R ' + FORMAT.currency(annualContrib);
+    const badge = $('tfsaLimitBadge');
+    if (overLimit) {
+      badge.textContent = 'exceeds R46,000 annual limit';
+      badge.classList.add('over');
+    } else {
+      badge.textContent = 'within R46,000 annual limit';
+      badge.classList.remove('over');
+    }
+
+    const fill = $('tfsaProgressFill');
+    fill.style.width = lifetimePct.toFixed(1) + '%';
+    if (lifetimePct >= 85) fill.classList.add('near'); else fill.classList.remove('near');
+    $('tfsaProgressLabel').textContent = `R ${FORMAT.currency(lifetimeContrib)} contributed · ${lifetimePct.toFixed(0)}% of R500,000 lifetime cap`;
+
+    $('tfsaValue').textContent      = 'R ' + FORMAT.currency(FV);
+    $('tfsaTaxedValue').textContent = 'R ' + FORMAT.currency(taxedFV);
+    $('tfsaTaxSaved').textContent   = 'R ' + FORMAT.currency(taxSaved);
+
+    updateChartTfsaLine(taxedSeries);
+  }
+
+  // ─────────────────────────────────────────────
+  // RA DEDUCTION
+  // ─────────────────────────────────────────────
+  const RA_MAX = 350000;
+  const RA_PCT = 0.275;
+
+  function recalculateRA() {
+    const raContrib   = FORMAT.parseCurrency($('raContrib').value) || 0;
+    const income      = FORMAT.parseCurrency($('taxableIncome').value) || 0;
+    const marginal    = FORMAT.parsePercent($('taxMarginal').value) / 100;
+    const incomeLimit = income > 0 ? income * RA_PCT : RA_MAX;
+    const deductLimit = Math.min(incomeLimit, RA_MAX);
+    const deductAmt   = Math.min(raContrib, deductLimit);
+    const taxSaving   = deductAmt * marginal;
+    const afterTaxCost = raContrib - taxSaving;
+
+    $('raLimit').textContent       = 'R ' + FORMAT.currency(deductLimit);
+    $('raTaxSaving').textContent   = 'R ' + FORMAT.currency(taxSaving);
+    $('raAfterTaxCost').textContent = 'R ' + FORMAT.currency(Math.max(0, afterTaxCost));
+  }
+
+  // ─────────────────────────────────────────────
+  // SARS MODAL
+  // ─────────────────────────────────────────────
+  function bindSarsModal() {
+    const backdrop = $('sarsModalBackdrop');
+    const closeBtn = $('sarsModalClose');
+    const openBtn  = $('openSarsTable');
+    if (!backdrop || !openBtn) return;
+    openBtn.addEventListener('click', () => backdrop.classList.add('open'));
+    closeBtn.addEventListener('click', () => backdrop.classList.remove('open'));
+    backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.classList.remove('open'); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') backdrop.classList.remove('open'); });
   }
 
   function bindTax() {
@@ -2411,6 +2724,14 @@
       $('taxSplitLabel').textContent = $('taxSplit').value + '%';
       debounce(recalculateTax);
     });
+    $('taxableIncome').addEventListener('input', () => debounce(handleIncomeInput));
+    $('taxableIncome').addEventListener('blur', e => {
+      const raw = FORMAT.parseCurrency(e.target.value);
+      if (raw > 0) e.target.value = FORMAT.currency(raw);
+      handleIncomeInput();
+    });
+    $('raContrib').addEventListener('input', () => debounce(recalculateRA));
+    $('raContrib').addEventListener('blur', e => { e.target.value = FORMAT.currency(FORMAT.parseCurrency(e.target.value)); });
   }
 
   // ─────────────────────────────────────────────
@@ -2500,6 +2821,7 @@
     bindTax();
     bindProModal();
     bindProButtons();
+    bindSarsModal();
     initTooltips();
     applySolveFor(STATE.solveFor);
     recalculate();
