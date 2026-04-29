@@ -92,7 +92,8 @@ function addMonth(dateStr) {
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+  const method = (req.method || '').toUpperCase();
+  if (method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   // Read raw body for PayFast re-validation
   const chunks = [];

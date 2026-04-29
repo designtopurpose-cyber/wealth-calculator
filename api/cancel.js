@@ -68,8 +68,9 @@ async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).end();
+  const method = (req.method || '').toUpperCase();
+  if (method === 'OPTIONS') return res.status(200).end();
+  if (method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { access_token } = req.body || {};
   if (!access_token) return res.status(401).json({ error: 'Missing access_token' });
