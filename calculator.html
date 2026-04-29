@@ -865,8 +865,9 @@
       .summary-bar   { grid-column: 1; grid-row: 1; grid-template-columns: repeat(2, 1fr); }
       #inputsCard    { grid-row: 2; }
       .chart-card    { grid-row: 3; }
-      #goalPanelWrap { grid-column: 1; grid-row: 4; }
-      #proWrap       { grid-column: 1; grid-row: 5; }
+      #tfsaPanelWrap { grid-column: 1; grid-row: 4; }
+      #goalPanelWrap { grid-column: 1; grid-row: 5; }
+      #proWrap       { grid-column: 1; grid-row: 6; }
 
       .stat:nth-child(2) { border-right: none; }
       .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--border); }
@@ -876,6 +877,9 @@
       .goal-card .input-group { flex: unset; }
       .goal-divider { display: none; }
       .pro-features-section { flex: unset; }
+      .tfsa-panel { flex-direction: column; padding: 14px 16px; gap: 14px; }
+      .tfsa-divider { display: none; }
+      .tfsa-right-section { min-width: unset; width: 100%; }
 
       .forecast-inner {
         grid-template-columns: 1fr;
@@ -939,30 +943,30 @@
     }
 
     /* ── TFSA Panel ── */
-    #tfsaPanelWrap { grid-column: 1; grid-row: 3; display: none; }
+    #tfsaPanelWrap { grid-column: 1 / -1; grid-row: 3; display: none; }
     #app.tfsa-mode #tfsaPanelWrap { display: block; }
-    .tfsa-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
-    .tfsa-panel-title { font-size: 0.8rem; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
-    .tfsa-limit-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; flex-wrap: wrap; }
+    .tfsa-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 24px; display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
+    .tfsa-divider { width: 1px; align-self: stretch; background: var(--border); flex-shrink: 0; }
+    .tfsa-left-section { flex: 0 0 auto; }
+    .tfsa-middle-section { flex: 1; min-width: 220px; }
+    .tfsa-right-section { flex: 0 0 auto; min-width: 250px; }
+    .tfsa-panel-title { font-size: 0.8rem; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; white-space: nowrap; }
+    .tfsa-limit-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap; }
     .tfsa-limit-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(16,185,129,0.12); color: var(--green); white-space: nowrap; }
     .tfsa-limit-badge.over { background: rgba(245,158,11,0.12); color: var(--amber); }
-    .tfsa-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .tfsa-stat { background: var(--bg); border-radius: var(--radius-sm); padding: 10px 12px; }
-    .tfsa-stat-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px; }
-    .tfsa-stat-value { font-size: 0.95rem; font-weight: 700; color: var(--text); font-family: var(--serif); }
-    .tfsa-progress-wrap { margin-bottom: 14px; }
+    .tfsa-progress-wrap { }
     .tfsa-progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; margin-bottom: 4px; }
     .tfsa-progress-fill { height: 100%; background: var(--green); border-radius: 99px; transition: width 0.3s ease; }
     .tfsa-progress-fill.near { background: var(--amber); }
-    .tfsa-progress-label { font-size: 0.72rem; color: var(--text-muted); }
-    .tfsa-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); margin-bottom: 10px; }
+    .tfsa-progress-label { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+    .tfsa-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
     .tfsa-compare-item { background: var(--bg); border-radius: var(--radius-sm); padding: 10px 12px; }
     .tfsa-compare-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px; }
     .tfsa-compare-value { font-size: 1rem; font-weight: 700; font-family: var(--serif); }
     .tfsa-compare-value.tfsa-val { color: var(--green); }
     .tfsa-compare-value.taxed-val { color: var(--text-muted); }
     .tfsa-saving-row { padding: 8px 12px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.18); border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--green); display: flex; justify-content: space-between; align-items: center; }
-    .tfsa-penalty-box { display: none; background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.25); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 12px; }
+    .tfsa-penalty-box { display: none; background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.25); border-radius: var(--radius-sm); padding: 12px; }
     .tfsa-penalty-box.show { display: block; }
     .tfsa-penalty-title { font-size: 0.78rem; font-weight: 700; color: #f87171; margin-bottom: 10px; }
     .tfsa-penalty-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
@@ -1167,59 +1171,68 @@
     </div>
   </div>
 
-  <!-- ── TFSA Panel (visible in TFSA mode only) ── -->
+  <!-- ── TFSA Panel (visible in TFSA mode only, full-width row like goal panel) ── -->
   <div id="tfsaPanelWrap">
     <div class="tfsa-panel">
-      <div class="tfsa-panel-title">TFSA Summary</div>
 
-      <!-- Annual contribution + limit badge -->
-      <div class="tfsa-limit-row">
-        Annual contribution: <strong id="tfsaAnnualAmt">—</strong>
-        <span class="tfsa-limit-badge" id="tfsaLimitBadge">within R46,000 annual limit</span>
-      </div>
-
-      <!-- SARS penalty warning (shown only when over annual limit) -->
-      <div class="tfsa-penalty-box" id="tfsaPenaltyBox">
-        <div class="tfsa-penalty-title">⚠ SARS 40% Over-Contribution Penalty Applies</div>
-        <div class="tfsa-penalty-grid">
-          <div class="tfsa-penalty-item">
-            <div class="tfsa-penalty-label">Annual Excess</div>
-            <div class="tfsa-penalty-value" id="tfsaExcessAnnual">—</div>
-          </div>
-          <div class="tfsa-penalty-item">
-            <div class="tfsa-penalty-label">Annual SARS Penalty (40%)</div>
-            <div class="tfsa-penalty-value tfsa-neg" id="tfsaPenaltyAnnual">—</div>
-          </div>
-          <div class="tfsa-penalty-item">
-            <div class="tfsa-penalty-label">Total Penalty Over Period</div>
-            <div class="tfsa-penalty-value tfsa-neg" id="tfsaPenaltyTotal">—</div>
-          </div>
-        </div>
-        <p class="tfsa-penalty-note">SARS levies a 40% penalty tax on any contributions exceeding the annual TFSA limit (Section 12T, Income Tax Act). Reduce your monthly contribution to <strong>R<span id="tfsaMaxMonthly">3,833</span></strong> to stay within the R46,000 annual limit and avoid this penalty.</p>
-      </div>
-
-      <!-- Lifetime progress bar (shown only when within annual limit) -->
-      <div class="tfsa-progress-wrap" id="tfsaProgressWrap">
-        <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px">Lifetime contributions toward R500,000 cap</div>
-        <div class="tfsa-progress-bar"><div class="tfsa-progress-fill" id="tfsaProgressFill" style="width:0%"></div></div>
-        <div class="tfsa-progress-label" id="tfsaProgressLabel">—</div>
-      </div>
-
-      <!-- TFSA vs taxed comparison -->
-      <div class="tfsa-compare">
-        <div class="tfsa-compare-item">
-          <div class="tfsa-compare-label">TFSA Portfolio (tax-free)</div>
-          <div class="tfsa-compare-value tfsa-val" id="tfsaValue">—</div>
-        </div>
-        <div class="tfsa-compare-item">
-          <div class="tfsa-compare-label">Equivalent Taxed Account</div>
-          <div class="tfsa-compare-value taxed-val" id="tfsaTaxedValue">—</div>
+      <!-- Left: title + annual contribution status -->
+      <div class="tfsa-left-section">
+        <div class="tfsa-panel-title">TFSA Summary</div>
+        <div class="tfsa-limit-row">
+          Annual: <strong id="tfsaAnnualAmt">—</strong>
+          <span class="tfsa-limit-badge" id="tfsaLimitBadge">within R46,000 annual limit</span>
         </div>
       </div>
-      <div class="tfsa-saving-row">
-        <span>Tax saved by using a TFSA</span>
-        <strong id="tfsaTaxSaved">—</strong>
+
+      <div class="tfsa-divider"></div>
+
+      <!-- Middle: progress bar OR penalty warning -->
+      <div class="tfsa-middle-section">
+        <div class="tfsa-penalty-box" id="tfsaPenaltyBox">
+          <div class="tfsa-penalty-title">⚠ SARS 40% Over-Contribution Penalty Applies</div>
+          <div class="tfsa-penalty-grid">
+            <div class="tfsa-penalty-item">
+              <div class="tfsa-penalty-label">Annual Excess</div>
+              <div class="tfsa-penalty-value" id="tfsaExcessAnnual">—</div>
+            </div>
+            <div class="tfsa-penalty-item">
+              <div class="tfsa-penalty-label">Annual SARS Penalty (40%)</div>
+              <div class="tfsa-penalty-value tfsa-neg" id="tfsaPenaltyAnnual">—</div>
+            </div>
+            <div class="tfsa-penalty-item">
+              <div class="tfsa-penalty-label">Total Penalty Over Period</div>
+              <div class="tfsa-penalty-value tfsa-neg" id="tfsaPenaltyTotal">—</div>
+            </div>
+          </div>
+          <p class="tfsa-penalty-note">SARS levies a 40% penalty tax on any contributions exceeding the annual TFSA limit (Section 12T, Income Tax Act). Reduce your monthly contribution to <strong>R<span id="tfsaMaxMonthly">3,833</span></strong> to stay within the R46,000 annual limit and avoid this penalty.</p>
+        </div>
+        <div class="tfsa-progress-wrap" id="tfsaProgressWrap">
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:6px">Lifetime contributions toward R500,000 cap</div>
+          <div class="tfsa-progress-bar"><div class="tfsa-progress-fill" id="tfsaProgressFill" style="width:0%"></div></div>
+          <div class="tfsa-progress-label" id="tfsaProgressLabel">—</div>
+        </div>
       </div>
+
+      <div class="tfsa-divider"></div>
+
+      <!-- Right: TFSA vs taxed comparison + tax saved -->
+      <div class="tfsa-right-section">
+        <div class="tfsa-compare">
+          <div class="tfsa-compare-item">
+            <div class="tfsa-compare-label">TFSA Portfolio (tax-free)</div>
+            <div class="tfsa-compare-value tfsa-val" id="tfsaValue">—</div>
+          </div>
+          <div class="tfsa-compare-item">
+            <div class="tfsa-compare-label">Equivalent Taxed Account</div>
+            <div class="tfsa-compare-value taxed-val" id="tfsaTaxedValue">—</div>
+          </div>
+        </div>
+        <div class="tfsa-saving-row">
+          <span>Tax saved by using a TFSA</span>
+          <strong id="tfsaTaxSaved">—</strong>
+        </div>
+      </div>
+
     </div>
   </div>
 
