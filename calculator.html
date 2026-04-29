@@ -930,16 +930,91 @@
 
     /* ── Print ── */
     @media print {
-      header p, .mode-toggle, #inputsCard, #goalPanelWrap, .pro-tabs, footer { display: none !important; }
-      body { background: #fff; }
-      main { display: block; padding: 0; max-width: 100%; }
-      .summary-bar { display: grid; margin-bottom: 16px; box-shadow: none; border: 1px solid #ddd; }
-      .chart-card { box-shadow: none; border: 1px solid #ddd; margin-bottom: 16px; }
+      /* ── Override dark colour tokens to light theme ── */
+      :root {
+        --bg:          #ffffff;
+        --bg-2:        #f8fafc;
+        --card:        #ffffff;
+        --card-2:      #f1f5f9;
+        --text:        #0f172a;
+        --text-muted:  #475569;
+        --text-dim:    #94a3b8;
+        --border:      #e2e8f0;
+        --green:       #059669;
+        --green-light: rgba(5,150,105,0.12);
+        --amber:       #b45309;
+        --amber-light: rgba(180,83,9,0.1);
+        --amber-border:rgba(180,83,9,0.25);
+        --blue:        #1d4ed8;
+        --blue-light:  rgba(29,78,216,0.1);
+        --red:         #dc2626;
+        --purple:      #7c3aed;
+        --shadow:      none;
+        --shadow-md:   none;
+      }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+      body { background: #fff !important; color: #0f172a !important; }
+
+      /* ── Hide interactive chrome ── */
+      .header-back, header p,
+      .mode-toggle,
+      #inputsCard, #goalPanelWrap,
+      #tfsaCapHint,
+      .pro-tabs, .pro-features-section,
+      .pro-modal-backdrop, #sarsModalBackdrop,
+      footer { display: none !important; }
+
+      /* ── Header: static, white ── */
+      header {
+        background: #fff !important;
+        border-bottom: 1px solid #e2e8f0;
+        backdrop-filter: none;
+        position: static;
+        padding: 8px 20px;
+      }
+
+      /* ── Main: single-column block flow ── */
+      main {
+        display: block;
+        max-width: 100%;
+        padding: 12px 20px;
+        margin: 0;
+      }
+
+      /* ── All cards: white, border, no shadow ── */
+      .card {
+        background: #fff !important;
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+        margin-bottom: 12px;
+        overflow: visible;
+      }
+
+      /* ── Summary bar: 4-column grid, full width ── */
+      .summary-bar {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        margin-bottom: 12px;
+      }
+      .stat { border-right-color: #e2e8f0 !important; }
+
+      /* ── Chart: block with fixed height so canvas stays sized ── */
+      .chart-card { display: block !important; page-break-inside: avoid; }
+      .chart-wrapper { position: relative !important; height: 300px !important; flex: none !important; min-height: 0 !important; }
+
+      /* ── TFSA panel ── */
+      #tfsaPanelWrap { display: none !important; }
+      #app.tfsa-mode #tfsaPanelWrap { display: block !important; margin-bottom: 12px; }
+      .tfsa-progress-bar { background: #e2e8f0 !important; }
+      .tfsa-compare-item, .tfsa-penalty-item { background: #f8fafc !important; }
+      .tfsa-saving-row { background: rgba(5,150,105,0.08) !important; }
+
+      /* ── Pro section: show active tab content ── */
       #proWrap { max-height: none !important; overflow: visible !important; display: block !important; }
-      #proWrap .pro-card { box-shadow: none; border: 1px solid #ddd; }
+      #proWrap .pro-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
       .pro-tab-panel { display: none !important; }
       .pro-tab-panel.active { display: block !important; }
-      .pro-modal-backdrop { display: none !important; }
     }
 
     /* ── TFSA Panel ── */
@@ -2948,6 +3023,15 @@
     initTooltips();
     applySolveFor(STATE.solveFor);
     recalculate();
+
+    // Resize Chart.js canvases to match the fixed print height before printing,
+    // then restore them to container-fit after the print dialog closes.
+    window.addEventListener('beforeprint', () => {
+      [chart, forecastChart, inflationChart, scenariosChart].forEach(c => { if (c) c.resize(700, 280); });
+    });
+    window.addEventListener('afterprint', () => {
+      [chart, forecastChart, inflationChart, scenariosChart].forEach(c => { if (c) c.resize(); });
+    });
   });
 
 })();
