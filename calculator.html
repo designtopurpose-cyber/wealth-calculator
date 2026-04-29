@@ -972,6 +972,8 @@
     .tfsa-penalty-value.tfsa-neg { color: #f87171; }
     .tfsa-penalty-note { font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
     @media (max-width: 480px) { .tfsa-penalty-grid { grid-template-columns: 1fr 1fr; } }
+    .tfsa-cap-hint { display: none; font-size: 0.72rem; color: var(--text-muted); margin-top: 5px; line-height: 1.4; padding: 0 2px; }
+    #app.tfsa-mode .tfsa-cap-hint { display: block; }
 
     /* ── RA Section ── */
     .ra-section { margin-top: 16px; padding: 14px 16px; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border); }
@@ -1160,6 +1162,7 @@
           </button>
         </div>
         <span class="field-error" id="monthlyContrib-err"></span>
+        <div id="tfsaCapHint" class="tfsa-cap-hint"></div>
       </div>
     </div>
   </div>
@@ -1723,6 +1726,7 @@
     lastR: 0.07,
     lastPMT: 500,
     lastContrib: 0,
+    lastTfsaSeries: null,
     activeProTab: null,
     isPro: localStorage.getItem('proUnlocked') === '1',
   };
@@ -1751,6 +1755,36 @@
           value: Math.max(0, fv),
           contributions: Math.max(0, totalContrib),
           interest: Math.max(0, fv - totalContrib),
+        });
+      }
+      return series;
+    },
+
+    // TFSA series: caps contributions at R46k/year AND R500k lifetime
+    buildTfsaYearSeries(P, annualRate, PMT, startAge, endAge) {
+      const ANNUAL_LIMIT   = 46000;
+      const LIFETIME_LIMIT = 500000;
+      const r = annualRate / 12;
+      const years = endAge - startAge;
+      let balance = Math.max(0, P);
+      let totalContrib = Math.max(0, P);
+      const series = [{ age: startAge, value: balance, contributions: totalContrib, interest: 0 }];
+      for (let y = 1; y <= years; y++) {
+        const remaining = Math.max(0, LIFETIME_LIMIT - totalContrib);
+        const effectiveAnnual = Math.min(PMT * 12, ANNUAL_LIMIT, remaining);
+        const effectiveMonthly = effectiveAnnual / 12;
+        if (Math.abs(r) < 1e-10) {
+          balance += effectiveMonthly * 12;
+        } else {
+          const factor = Math.pow(1 + r, 12);
+          balance = balance * factor + effectiveMonthly * (factor - 1) / r;
+        }
+        totalContrib = Math.min(totalContrib + effectiveAnnual, LIFETIME_LIMIT);
+        series.push({
+          age: startAge + y,
+          value: Math.max(0, balance),
+          contributions: totalContrib,
+          interest: Math.max(0, balance - totalContrib),
         });
       }
       return series;
@@ -1985,7 +2019,10 @@
       if (r < 0) { setError('annualRate', 'Cannot be negative'); return; }
       if (PMT < 0) { setError('monthlyContrib', 'Cannot be negative'); return; }
 
-      const series = MATH.buildYearSeries(P, r, PMT, currentAge, targetAge);
+      const series = STATE.mode === 'tfsa'
+        ? MATH.buildTfsaYearSeries(P, r, PMT, currentAge, targetAge)
+        : MATH.buildYearSeries(P, r, PMT, currentAge, targetAge);
+      STATE.lastTfsaSeries = STATE.mode === 'tfsa' ? series : null;
       const last   = series[series.length - 1];
       STATE.lastFV = last.value;
       STATE.lastTargetAge = targetAge;
@@ -2650,12 +2687,8 @@
   // TFSA MODE
   // ─────────────────────────────────────────────
   function recalculateTfsa() {
-    // Use STATE values set by recalculate() — never read goal-solver fields
-    const FV       = STATE.lastFV;
-    const contribs = STATE.lastContrib;
-    const PMT      = STATE.lastPMT;
-    const P        = STATE.lastP;
-    const r        = STATE.lastR;
+    const PMT        = STATE.lastPMT;
+    const P          = STATE.lastP;
     const currentAge = getIntValue('currentAge');
     const targetAge  = STATE.lastTargetAge;
     const years      = Math.max(0, targetAge - currentAge);
@@ -2664,17 +2697,25 @@
     const LIFETIME_LIMIT = 500000;
     const PENALTY_RATE   = 0.40;
 
-    const annualContrib  = PMT * 12;
-    const overLimit      = annualContrib > ANNUAL_LIMIT;
-    const excessAnnual   = Math.max(0, annualContrib - ANNUAL_LIMIT);
-    const penaltyAnnual  = excessAnnual * PENALTY_RATE;
-    const penaltyTotal   = penaltyAnnual * years;
-    const maxMonthly     = Math.floor(ANNUAL_LIMIT / 12);   // 3833
+    const annualContrib = PMT * 12;
+    const overLimit     = annualContrib > ANNUAL_LIMIT;
+    const excessAnnual  = Math.max(0, annualContrib - ANNUAL_LIMIT);
+    const penaltyAnnual = excessAnnual * PENALTY_RATE;
+    const penaltyTotal  = penaltyAnnual * years;
+    const maxMonthly    = Math.floor(ANNUAL_LIMIT / 12);
 
-    // Lifetime: cap each year's contribution at ANNUAL_LIMIT
-    const allowedAnnual   = Math.min(annualContrib, ANNUAL_LIMIT);
-    const lifetimeContrib = Math.max(P, 0) + allowedAnnual * years;
-    const lifetimePct     = Math.min(lifetimeContrib / LIFETIME_LIMIT * 100, 100);
+    // Lifetime cap tracking (excess over annual limit doesn't count toward lifetime room)
+    const allowedAnnual = Math.min(annualContrib, ANNUAL_LIMIT);
+    const initialRoom   = Math.max(0, LIFETIME_LIMIT - Math.max(0, P));
+    const yearsToFull   = allowedAnnual > 0 ? initialRoom / allowedAnnual : Infinity;
+    const capReachedAge = currentAge + yearsToFull;
+
+    // FV and contributions come from the pre-built TFSA series (capped at R500k)
+    const tfsaSeries  = STATE.lastTfsaSeries || [];
+    const lastPt      = tfsaSeries.length ? tfsaSeries[tfsaSeries.length - 1] : { value: STATE.lastFV, contributions: 0 };
+    const FV          = lastPt.value;
+    const lifetimeContrib = lastPt.contributions;
+    const lifetimePct = Math.min(lifetimeContrib / LIFETIME_LIMIT * 100, 100);
 
     // Taxed-account equivalent (uses tax tab settings; defaults to 18% eff. CGT / 20% DWT)
     const inclusion = FORMAT.parsePercent($('taxCgtInclusion').value) / 100;
@@ -2684,13 +2725,13 @@
     const split     = parseInt($('taxSplit').value) / 100;
 
     let taxedFV = FV;
-    if (FV > 0 && contribs > 0) {
-      taxedFV = PRO_MATH.afterTaxFV(FV, contribs, cgtEff, dwt, split).afterTax;
+    if (FV > 0 && lifetimeContrib > 0) {
+      taxedFV = PRO_MATH.afterTaxFV(FV, lifetimeContrib, cgtEff, dwt, split).afterTax;
     }
     const taxSaved = Math.max(0, FV - taxedFV);
 
-    // Taxed-equivalent series for chart overlay
-    const taxedSeries = MATH.buildYearSeries(P, r, PMT, currentAge, targetAge).map(s => {
+    // Taxed-equivalent series follows the same TFSA contribution schedule
+    const taxedSeries = tfsaSeries.map(s => {
       const gain = Math.max(0, s.value - s.contributions);
       return { age: s.age, value: Math.max(0, s.value - gain * split * cgtEff - gain * (1 - split) * dwt) };
     });
@@ -2724,6 +2765,20 @@
       if (lifetimePct >= 85) fill.classList.add('near'); else fill.classList.remove('near');
       $('tfsaProgressLabel').textContent =
         `R ${FORMAT.currency(lifetimeContrib)} contributed · ${lifetimePct.toFixed(0)}% of R500,000 lifetime cap`;
+    }
+
+    // ── Lifetime cap hint below monthly contribution field ──
+    const hint = $('tfsaCapHint');
+    if (hint) {
+      if (PMT <= 0 || allowedAnnual <= 0) {
+        hint.textContent = 'No monthly contribution — portfolio grows from initial capital only.';
+      } else if (initialRoom <= 0) {
+        hint.textContent = 'Lifetime R500,000 cap already reached — no further contributions allowed.';
+      } else if (capReachedAge > targetAge) {
+        hint.textContent = `At R${FORMAT.currency(PMT)}/month, R${FORMAT.currency(lifetimeContrib)} will be contributed by age ${targetAge} — R500,000 lifetime cap not reached within this period.`;
+      } else {
+        hint.textContent = `Contributions stop after ${yearsToFull.toFixed(1)} years (age ${Math.round(capReachedAge)}) — R500,000 lifetime cap reached.`;
+      }
     }
 
     // ── Comparison ──
