@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/renewal-reminder",
+      "schedule": "0 6 * * *"
+    }
+  ],
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 30
+    }
+  }
+}

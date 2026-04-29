@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1369,6 +1370,7 @@
     <li><a href="#pricing">Pricing</a></li>
     <li><a href="#faq">FAQ</a></li>
     <li><a href="calculator.html" class="nav-cta">Launch Calculator →</a></li>
+    <li><a href="account.html" id="navAccountBtn" style="display:none;font-weight:600;color:#f59e0b;">My Account</a></li>
   </ul>
   <button class="nav-hamburger" id="hamburger" aria-label="Open menu">
     <span></span><span></span><span></span>
@@ -1384,6 +1386,7 @@
   <a href="#pricing">Pricing</a>
   <a href="#faq">FAQ</a>
   <a href="calculator.html" class="nav-cta">Launch Calculator →</a>
+  <a href="account.html" id="mobileAccountBtn" style="display:none;color:#f59e0b;font-weight:600;">My Account</a>
 </nav>
 
 <!-- ══ HERO ══ -->
@@ -1632,7 +1635,7 @@
         <li>Export to PDF</li>
         <li>Sources &amp; Validation tab</li>
       </ul>
-      <button type="button" class="btn-pricing-pro" onclick="openProModal()">Unlock Pro — R39/month</button>
+      <button type="button" class="btn-pricing-pro" onclick="openProModal('monthly')">Unlock Pro — R39/month</button>
       <div class="pricing-cancel">Cancel anytime · No contract</div>
     </div>
 
@@ -1650,7 +1653,7 @@
         <li>Export to PDF</li>
         <li>Sources &amp; Validation tab</li>
       </ul>
-      <button type="button" class="btn-pricing-annual" onclick="openProModal()">Unlock Pro Annual — R399/yr</button>
+      <button type="button" class="btn-pricing-annual" onclick="openProModal('annual')">Unlock Pro Annual — R399/yr</button>
       <div class="pricing-cancel">Renews annually · Cancel anytime</div>
     </div>
 
@@ -1749,8 +1752,8 @@
       <div class="footer-col">
         <h4>Legal</h4>
         <ul>
-          <li><a href="#">Privacy Policy</a></li>
-          <li><a href="#">Terms of Use</a></li>
+          <li><a href="privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Use</a></li>
         </ul>
       </div>
     </div>
@@ -1848,159 +1851,468 @@
 })();
 </script>
 
-<!-- ══ PRO MODAL ══ -->
+<!-- ══ AUTH / PAYMENT MODAL ══ -->
 <style>
-  .lp-modal-backdrop {
+  /* ── Auth modal shared ── */
+  .auth-backdrop {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.78);
+    backdrop-filter: blur(7px);
     z-index: 200;
-    display: none;
-    align-items: center;
-    justify-content: center;
+    display: none; align-items: center; justify-content: center;
     padding: 16px;
   }
-  .lp-modal-backdrop.open { display: flex; }
-  .lp-modal {
+  .auth-backdrop.open { display: flex; }
+  .auth-modal {
     background: #111827;
     border: 1px solid rgba(245,158,11,0.25);
-    border-radius: 14px;
-    max-width: 400px;
-    width: 100%;
-    padding: 28px 28px 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(245,158,11,0.08);
+    border-radius: 16px;
+    max-width: 420px; width: 100%;
+    padding: 30px 28px 26px;
+    box-shadow: 0 24px 72px rgba(0,0,0,0.75), 0 0 48px rgba(245,158,11,0.06);
     position: relative;
+    max-height: 90vh; overflow-y: auto;
   }
-  .lp-modal-close {
+  .auth-close {
     position: absolute; top: 14px; right: 14px;
     width: 28px; height: 28px;
     border: none; background: rgba(255,255,255,0.06);
     border-radius: 50%; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    color: #94a3b8; font-size: 1rem;
-    transition: background 0.15s;
+    color: #94a3b8; font-size: 1rem; transition: background 0.15s;
   }
-  .lp-modal-close:hover { background: rgba(255,255,255,0.12); }
-  .lp-modal-icon {
-    width: 48px; height: 48px;
-    background: #f59e0b;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem;
-    margin-bottom: 14px;
-    box-shadow: 0 0 20px rgba(245,158,11,0.3);
+  .auth-close:hover { background: rgba(255,255,255,0.13); }
+  .auth-icon {
+    width: 46px; height: 46px; background: #f59e0b;
+    border-radius: 12px; display: flex; align-items: center;
+    justify-content: center; font-size: 1.4rem;
+    margin-bottom: 14px; box-shadow: 0 0 20px rgba(245,158,11,0.3);
   }
-  .lp-modal h2 {
-    font-size: 1.2rem; font-weight: 700;
-    color: #f1f5f9; margin-bottom: 6px;
+  .auth-title {
     font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.2rem; font-weight: 700;
+    color: #f1f5f9; margin-bottom: 4px;
   }
-  .lp-modal-sub { font-size: 0.85rem; color: #94a3b8; margin-bottom: 16px; }
-  .lp-feature-list {
-    list-style: none; margin-bottom: 20px;
-    display: flex; flex-direction: column; gap: 7px;
+  .auth-sub { font-size: 0.85rem; color: #94a3b8; margin-bottom: 18px; }
+
+  /* Tab switcher */
+  .auth-tabs {
+    display: flex; gap: 0;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px; padding: 3px;
+    margin-bottom: 18px;
   }
-  .lp-feature-list li {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 0.875rem; color: #f1f5f9;
+  .auth-tab {
+    flex: 1; padding: 8px 0; border: none; border-radius: 6px;
+    background: none; color: #94a3b8;
+    font-size: 0.875rem; font-weight: 600; cursor: pointer;
+    transition: background 0.15s, color 0.15s;
   }
-  .lp-feature-list li::before {
-    content: '✓';
-    width: 18px; height: 18px;
-    background: rgba(245,158,11,0.15); color: #f59e0b;
-    border-radius: 50%; font-size: 0.7rem; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; text-align: center; line-height: 18px;
+  .auth-tab.active { background: #1e293b; color: #f1f5f9; }
+
+  /* Form fields */
+  .auth-field { margin-bottom: 13px; }
+  .auth-field label {
+    display: block; font-size: 0.78rem; font-weight: 600;
+    color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.07em;
   }
-  .lp-price-line {
-    background: rgba(245,158,11,0.1);
-    border: 1px solid rgba(245,158,11,0.25);
-    border-radius: 8px; padding: 10px 14px;
-    display: flex; align-items: baseline; gap: 6px;
-    margin-bottom: 16px;
+  .auth-field input {
+    width: 100%; padding: 10px 13px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; color: #f1f5f9;
+    font-size: 0.9rem; font-family: inherit;
+    outline: none; transition: border-color 0.15s;
   }
-  .lp-price { font-size: 1.5rem; font-weight: 800; color: #f59e0b; font-family: 'Playfair Display', Georgia, serif; }
-  .lp-price-period { font-size: 0.85rem; color: #94a3b8; }
-  .lp-price-cancel { margin-left: auto; font-size: 0.75rem; color: #10b981; font-weight: 600; }
-  .lp-btn-subscribe {
-    width: 100%; padding: 11px;
-    background: #f59e0b; color: #0a0a0a;
-    border: none; border-radius: 8px;
-    font-size: 0.9375rem; font-weight: 700;
-    cursor: pointer;
-    transition: box-shadow 0.2s, transform 0.1s;
-    margin-bottom: 10px;
-    box-shadow: 0 0 20px rgba(245,158,11,0.25);
+  .auth-field input:focus { border-color: rgba(245,158,11,0.5); }
+
+  /* GDPR checkbox */
+  .auth-gdpr {
+    display: flex; align-items: flex-start; gap: 9px;
+    font-size: 0.8rem; color: #94a3b8; margin-bottom: 16px; line-height: 1.5;
   }
-  .lp-btn-subscribe:hover { box-shadow: 0 0 32px rgba(245,158,11,0.45); transform: translateY(-1px); }
-  .lp-btn-restore {
-    display: block; width: 100%; text-align: center;
-    background: none; border: none;
-    font-size: 0.8rem; color: #475569;
-    cursor: pointer; padding: 4px;
-    text-decoration: underline; font-family: inherit;
+  .auth-gdpr input[type="checkbox"] { margin-top: 2px; flex-shrink: 0; accent-color: #f59e0b; }
+  .auth-gdpr a { color: #f59e0b; text-decoration: none; }
+  .auth-gdpr a:hover { text-decoration: underline; }
+
+  /* Buttons */
+  .auth-btn-primary {
+    width: 100%; padding: 12px; background: #f59e0b; color: #0a0a0a;
+    border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: box-shadow 0.2s, transform 0.1s;
+    box-shadow: 0 0 20px rgba(245,158,11,0.28); margin-bottom: 8px;
   }
-  .lp-btn-restore:hover { color: #f59e0b; }
+  .auth-btn-primary:hover { box-shadow: 0 0 32px rgba(245,158,11,0.5); transform: translateY(-1px); }
+  .auth-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .auth-btn-green {
+    width: 100%; padding: 12px; background: #10b981; color: #fff;
+    border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: box-shadow 0.2s, transform 0.1s;
+    box-shadow: 0 0 20px rgba(16,185,129,0.25); margin-bottom: 8px;
+  }
+  .auth-btn-green:hover { box-shadow: 0 0 32px rgba(16,185,129,0.45); transform: translateY(-1px); }
+  .auth-btn-outline {
+    display: block; width: 100%; padding: 11px;
+    background: none; border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; color: #94a3b8; font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; transition: border-color 0.15s, color 0.15s; text-align: center;
+    text-decoration: none;
+  }
+  .auth-btn-outline:hover { border-color: rgba(255,255,255,0.3); color: #f1f5f9; }
+
+  .auth-msg {
+    font-size: 0.82rem; min-height: 18px; margin-bottom: 10px; text-align: center;
+  }
+  .auth-msg.err { color: #f87171; }
+  .auth-msg.ok  { color: #34d399; }
+
+  /* Plan cards in modal */
+  .plan-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .plan-card {
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    padding: 14px 16px; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: rgba(255,255,255,0.02);
+  }
+  .plan-card:hover { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.04); }
+  .plan-card.selected { border-color: rgba(245,158,11,0.7); background: rgba(245,158,11,0.07); }
+  .plan-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+  .plan-name { font-size: 0.9rem; font-weight: 700; color: #f1f5f9; }
+  .plan-price { font-size: 1.1rem; font-weight: 800; color: #f59e0b; font-family: 'Playfair Display', Georgia, serif; }
+  .plan-desc { font-size: 0.77rem; color: #94a3b8; }
+  .plan-save {
+    font-size: 0.68rem; font-weight: 700; color: #10b981;
+    background: rgba(16,185,129,0.12); border-radius: 20px; padding: 1px 7px; margin-left: 6px;
+  }
+
+  /* Subscribed state */
+  .sub-check {
+    width: 44px; height: 44px; background: rgba(16,185,129,0.15);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-bottom: 12px;
+  }
+  .sub-detail {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.85rem; color: #94a3b8;
+  }
+  .sub-detail strong { color: #f1f5f9; }
 </style>
 
-<div class="lp-modal-backdrop" id="lpModalBackdrop">
-  <div class="lp-modal" role="dialog" aria-modal="true" aria-labelledby="lpModalTitle">
-    <button class="lp-modal-close" onclick="closeProModal()" aria-label="Close">✕</button>
-    <div class="lp-modal-icon">🔓</div>
-    <h2 id="lpModalTitle">Unlock MyWealthLens Pro</h2>
-    <p class="lp-modal-sub">Get access to all advanced planning tools for R39/month.</p>
-    <ul class="lp-feature-list">
-      <li>Forecast After Target</li>
-      <li>Inflation-Adjusted Returns</li>
-      <li>3-Scenario Comparison</li>
-      <li>SA Tax Analysis (CGT + DWT)</li>
-      <li>Export to PDF</li>
-      <li>Sources &amp; Validation tab</li>
-    </ul>
-    <div class="lp-price-line">
-      <span class="lp-price">R39</span>
-      <span class="lp-price-period">/ month</span>
-      <span class="lp-price-cancel">Cancel anytime</span>
+<div class="auth-backdrop" id="authBackdrop">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="auth-close" id="authClose" aria-label="Close">✕</button>
+
+    <!-- View 1: Auth (signup / login) -->
+    <div id="viewAuth">
+      <div class="auth-icon">🔓</div>
+      <div class="auth-title" id="authTitle">Create your account</div>
+      <p class="auth-sub">Sign up or log in to subscribe to MyWealthLens Pro.</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabSignup" type="button">Sign up</button>
+        <button class="auth-tab" id="tabLogin" type="button">Log in</button>
+      </div>
+
+      <form id="authForm" autocomplete="on">
+        <div class="auth-field" id="fieldName" style="display:none;">
+          <label for="authName">First name (optional)</label>
+          <input type="text" id="authName" name="name" placeholder="e.g. Martin" autocomplete="given-name" />
+        </div>
+        <div class="auth-field">
+          <label for="authEmail">Email address</label>
+          <input type="email" id="authEmail" name="email" required placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="auth-field">
+          <label for="authPassword">Password</label>
+          <input type="password" id="authPassword" name="password" required placeholder="Minimum 8 characters" autocomplete="current-password" />
+        </div>
+        <div class="auth-field" id="fieldConfirm" style="display:none;">
+          <label for="authConfirm">Confirm password</label>
+          <input type="password" id="authConfirm" name="confirm" placeholder="Repeat password" autocomplete="new-password" />
+        </div>
+        <div class="auth-gdpr" id="gdprRow" style="display:none;">
+          <input type="checkbox" id="gdprCheck" />
+          <label for="gdprCheck">
+            I agree to the <a href="privacy-policy.html" target="_blank">Privacy Policy</a>
+            and <a href="terms.html" target="_blank">Terms of Use</a>
+          </label>
+        </div>
+        <div class="auth-msg" id="authMsg"></div>
+        <button type="submit" class="auth-btn-primary" id="authSubmit">Create account</button>
+      </form>
     </div>
-    <button class="lp-btn-subscribe" onclick="goToPayment()">Subscribe — R39/month →</button>
-    <button class="lp-btn-restore" onclick="restoreAccess()">Already subscribed? Restore access</button>
+
+    <!-- View 2: Plan selection -->
+    <div id="viewPlans" style="display:none;">
+      <div class="auth-icon">✨</div>
+      <div class="auth-title">Choose your plan</div>
+      <p class="auth-sub">Both plans include all Pro features. Cancel anytime.</p>
+
+      <div class="plan-cards">
+        <div class="plan-card" id="planMonthly" onclick="selectPlan('monthly')">
+          <div class="plan-card-header">
+            <span class="plan-name">Pro Monthly</span>
+            <span class="plan-price">R39<span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/mo</span></span>
+          </div>
+          <div class="plan-desc">Renews monthly · Cancel anytime</div>
+        </div>
+        <div class="plan-card" id="planAnnual" onclick="selectPlan('annual')">
+          <div class="plan-card-header">
+            <span class="plan-name">Pro Annual <span class="plan-save">Save R69</span></span>
+            <span class="plan-price">R399<span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/yr</span></span>
+          </div>
+          <div class="plan-desc">Renews annually · Cancel anytime · Reminder email 3 weeks before renewal</div>
+        </div>
+      </div>
+
+      <div class="auth-msg" id="planMsg"></div>
+      <button type="button" class="auth-btn-primary" id="btnProceedToPay">Continue to payment →</button>
+      <button type="button" class="auth-btn-outline" id="btnPlanLogout" style="margin-top:8px;">Log out</button>
+    </div>
+
+    <!-- View 3: Already subscribed -->
+    <div id="viewSubscribed" style="display:none;">
+      <div class="sub-check">✓</div>
+      <div class="auth-title">You're a Pro member</div>
+      <p class="auth-sub" style="margin-bottom:14px;">Your subscription is active.</p>
+      <div class="sub-detail" id="subDetail">Loading…</div>
+      <a href="calculator.html" class="auth-btn-primary" style="display:block;text-align:center;text-decoration:none;padding:12px;border-radius:8px;font-weight:700;font-size:0.95rem;color:#0a0a0a;background:#f59e0b;">Open Calculator →</a>
+      <a href="account.html" class="auth-btn-outline" style="margin-top:10px;">Manage subscription</a>
+    </div>
+
+    <!-- Hidden PayFast form — auto-submitted on payment -->
+    <form id="pfForm" action="https://www.payfast.co.za/eng/process" method="post" style="display:none;"></form>
   </div>
 </div>
 
 <script>
-  const LP_PAYMENT_URL  = 'YOUR_PAYMENT_LINK_HERE';
-  const LP_RESTORE_CODE = 'WEALTHPRO2026';
+(function () {
+  const SUPABASE_URL  = 'https://thvdbfkhedoirdliemsd.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRodmRiZmtoZWRvaXJkbGllbXNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDczMTcsImV4cCI6MjA5MjE4MzMxN30.9O_vUzTILfmLB7xjRKTl7teNI3klSjzYr8OYk2J-3r0';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  function openProModal() {
-    document.getElementById('lpModalBackdrop').classList.add('open');
+  let selectedPlan = 'monthly';
+  let currentSession = null;
+
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+
+  function $ (id) { return document.getElementById(id); }
+
+  function showView(name) {
+    ['viewAuth', 'viewPlans', 'viewSubscribed'].forEach(v => {
+      $(v).style.display = v === name ? 'block' : 'none';
+    });
+  }
+
+  function setMsg(id, text, isErr) {
+    const el = $(id);
+    el.textContent = text;
+    el.className   = 'auth-msg ' + (isErr ? 'err' : 'ok');
+  }
+
+  function formatDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function planLabel(p) {
+    return p === 'annual' ? 'Pro Annual (R399/year)' : 'Pro Monthly (R39/month)';
+  }
+
+  // ── Tab switching ─────────────────────────────────────────────────────────────
+
+  function setAuthTab(tab) {
+    const isSignup = tab === 'signup';
+    $('tabSignup').classList.toggle('active', isSignup);
+    $('tabLogin').classList.toggle('active', !isSignup);
+    $('fieldName').style.display    = isSignup ? '' : 'none';
+    $('fieldConfirm').style.display = isSignup ? '' : 'none';
+    $('gdprRow').style.display      = isSignup ? '' : 'none';
+    $('authSubmit').textContent     = isSignup ? 'Create account' : 'Log in';
+    $('authPassword').autocomplete  = isSignup ? 'new-password' : 'current-password';
+    $('authMsg').textContent        = '';
+  }
+
+  $('tabSignup').addEventListener('click', () => setAuthTab('signup'));
+  $('tabLogin').addEventListener('click',  () => setAuthTab('login'));
+
+  // ── Auth form submit ─────────────────────────────────────────────────────────
+
+  $('authForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const isSignup = $('tabSignup').classList.contains('active');
+    const email    = $('authEmail').value.trim();
+    const password = $('authPassword').value;
+    const btn      = $('authSubmit');
+
+    if (isSignup) {
+      if (password.length < 8) { setMsg('authMsg', 'Password must be at least 8 characters.', true); return; }
+      if (password !== $('authConfirm').value) { setMsg('authMsg', 'Passwords do not match.', true); return; }
+      if (!$('gdprCheck').checked) { setMsg('authMsg', 'Please accept the Privacy Policy and Terms of Use.', true); return; }
+    }
+
+    btn.disabled   = true;
+    btn.textContent = isSignup ? 'Creating account…' : 'Logging in…';
+    setMsg('authMsg', '', false);
+
+    let error;
+    if (isSignup) {
+      const name = $('authName').value.trim();
+      const { error: e } = await sb.auth.signUp({
+        email, password,
+        options: { data: { full_name: name } },
+      });
+      error = e;
+    } else {
+      const { error: e } = await sb.auth.signInWithPassword({ email, password });
+      error = e;
+    }
+
+    btn.disabled    = false;
+    btn.textContent = isSignup ? 'Create account' : 'Log in';
+
+    if (error) { setMsg('authMsg', error.message, true); return; }
+
+    const { data: { session } } = await sb.auth.getSession();
+    currentSession = session;
+    await afterAuth(session);
+  });
+
+  // ── After successful auth ─────────────────────────────────────────────────────
+
+  async function afterAuth(session) {
+    if (!session) return;
+    const { data: sub } = await sb
+      .from('subscriptions')
+      .select('plan, status, next_billing_date, access_until')
+      .eq('user_id', session.user.id)
+      .maybeSingle();
+
+    const today     = new Date().toISOString().slice(0, 10);
+    const hasAccess = sub && (
+      sub.status === 'active' ||
+      (sub.status === 'cancelling' && sub.access_until && sub.access_until >= today)
+    );
+
+    if (hasAccess) {
+      // Already subscribed
+      let detail = `Plan: <strong>${planLabel(sub.plan)}</strong><br>`;
+      if (sub.status === 'active' && sub.next_billing_date) {
+        detail += `Renews: <strong>${formatDate(sub.next_billing_date)}</strong>`;
+      } else if (sub.status === 'cancelling') {
+        detail += `Access until: <strong>${formatDate(sub.access_until)}</strong> — will not renew`;
+      }
+      $('subDetail').innerHTML = detail;
+      showView('viewSubscribed');
+    } else {
+      // Not subscribed — show plan selection, highlight pre-selected plan
+      highlightPlan(selectedPlan);
+      showView('viewPlans');
+    }
+    updateNavAuth(session);
+  }
+
+  // ── Plan selection ────────────────────────────────────────────────────────────
+
+  function selectPlan(plan) {
+    selectedPlan = plan;
+    highlightPlan(plan);
+  }
+
+  function highlightPlan(plan) {
+    $('planMonthly').classList.toggle('selected', plan === 'monthly');
+    $('planAnnual').classList.toggle('selected', plan === 'annual');
+  }
+
+  $('btnProceedToPay').addEventListener('click', async () => {
+    if (!currentSession) return;
+    const btn = $('btnProceedToPay');
+    btn.disabled    = true;
+    btn.textContent = 'Preparing payment…';
+    setMsg('planMsg', '', false);
+
+    const res = await fetch('/api/payfast-init', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ plan: selectedPlan, access_token: currentSession.access_token }),
+    });
+    const json = await res.json();
+
+    btn.disabled    = false;
+    btn.textContent = 'Continue to payment →';
+
+    if (!res.ok) { setMsg('planMsg', json.error || 'Something went wrong.', true); return; }
+
+    // Build and submit PayFast form
+    const form = $('pfForm');
+    form.action = json.pfUrl;
+    form.innerHTML = '';
+    Object.entries(json.params).forEach(([k, v]) => {
+      const inp  = document.createElement('input');
+      inp.type   = 'hidden';
+      inp.name   = k;
+      inp.value  = v;
+      form.appendChild(inp);
+    });
+    form.submit();
+  });
+
+  $('btnPlanLogout').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    currentSession = null;
+    showView('viewAuth');
+    updateNavAuth(null);
+  });
+
+  // ── Modal open / close ────────────────────────────────────────────────────────
+
+  async function openProModal(plan) {
+    if (plan) selectedPlan = plan;
+    $('authBackdrop').classList.add('open');
     document.body.style.overflow = 'hidden';
-  }
-  function closeProModal() {
-    document.getElementById('lpModalBackdrop').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  function goToPayment() {
-    window.open(LP_PAYMENT_URL, '_blank');
-  }
-  function restoreAccess() {
-    const code = prompt('Enter your restore code:');
-    if (code && code.trim().toUpperCase() === LP_RESTORE_CODE) {
-      localStorage.setItem('proUnlocked', '1');
-      alert('Pro access restored! Opening the calculator now.');
-      closeProModal();
-      window.location.href = 'calculator.html';
-    } else if (code !== null) {
-      alert('Code not recognised. Please check your email or contact support.');
+
+    const { data: { session } } = await sb.auth.getSession();
+    currentSession = session;
+
+    if (session) {
+      await afterAuth(session);
+    } else {
+      showView('viewAuth');
+      setAuthTab('signup');
+      highlightPlan(selectedPlan);
     }
   }
-  // Close on backdrop click
-  document.getElementById('lpModalBackdrop').addEventListener('click', function(e) {
-    if (e.target === this) closeProModal();
+
+  function closeProModal() {
+    $('authBackdrop').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  $('authClose').addEventListener('click', closeProModal);
+  $('authBackdrop').addEventListener('click', e => {
+    if (e.target === $('authBackdrop')) closeProModal();
   });
-  // Close on Escape
-  document.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeProModal();
   });
+
+  // ── Nav auth state ────────────────────────────────────────────────────────────
+
+  function updateNavAuth(session) {
+    const show = !!session;
+    $('navAccountBtn').style.display    = show ? '' : 'none';
+    $('mobileAccountBtn').style.display = show ? '' : 'none';
+  }
+
+  // Check session on page load
+  sb.auth.getSession().then(({ data: { session } }) => {
+    currentSession = session;
+    updateNavAuth(session);
+  });
+
+  // Expose openProModal globally (called from pricing card buttons)
+  window.openProModal = openProModal;
+})();
 </script>
 </body>
 </html>

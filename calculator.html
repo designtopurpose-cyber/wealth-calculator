@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1874,8 +1875,9 @@
   // ─────────────────────────────────────────────
   // CONFIG — update these before deploying
   // ─────────────────────────────────────────────
-  const PRO_PAYMENT_URL  = 'YOUR_PAYMENT_LINK_HERE';
-  const PRO_RESTORE_CODE = 'WEALTHPRO2026';
+  const SUPABASE_URL  = 'https://thvdbfkhedoirdliemsd.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRodmRiZmtoZWRvaXJkbGllbXNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDczMTcsImV4cCI6MjA5MjE4MzMxN30.9O_vUzTILfmLB7xjRKTl7teNI3klSjzYr8OYk2J-3r0';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
   // ─────────────────────────────────────────────
   // STATE
@@ -1891,7 +1893,7 @@
     lastContrib: 0,
     lastTfsaSeries: null,
     activeProTab: null,
-    isPro: localStorage.getItem('proUnlocked') === '1',
+    isPro: false,
   };
 
   // ─────────────────────────────────────────────
@@ -2379,10 +2381,11 @@
   }
 
   // ─────────────────────────────────────────────
-  // PRO PAYGATE
+  // PRO PAYGATE (Supabase-backed)
   // ─────────────────────────────────────────────
   function openProModal() {
-    $('proModalBackdrop').classList.add('open');
+    // Redirect to the landing page pricing section to sign up / subscribe
+    window.location.href = 'index.html#pricing';
   }
 
   function closeProModal() {
@@ -2391,8 +2394,6 @@
 
   function unlockPro() {
     STATE.isPro = true;
-    localStorage.setItem('proUnlocked', '1');
-    // Remove all lock badges
     document.querySelectorAll('.lock-badge').forEach(el => el.style.display = 'none');
     closeProModal();
   }
@@ -2408,18 +2409,36 @@
     $('proModalBackdrop').addEventListener('click', e => {
       if (e.target === $('proModalBackdrop')) closeProModal();
     });
+    // Subscribe button — go to pricing page
     $('btnSubscribe').addEventListener('click', () => {
-      window.open(PRO_PAYMENT_URL, '_blank');
+      window.location.href = 'index.html#pricing';
     });
+    // Restore button — log in via pricing page
     $('btnRestore').addEventListener('click', () => {
-      const code = prompt('Enter your restore code:');
-      if (code && code.trim().toUpperCase() === PRO_RESTORE_CODE) {
-        unlockPro();
-        alert('Pro access restored! Enjoy your features.');
-      } else if (code !== null) {
-        alert('Code not recognised. Please check your email or contact support.');
-      }
+      window.location.href = 'index.html#pricing';
     });
+  }
+
+  // ─────────────────────────────────────────────
+  // SUPABASE PRO CHECK (runs once on load)
+  // ─────────────────────────────────────────────
+  async function initProState() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+
+    const { data: sub } = await sb
+      .from('subscriptions')
+      .select('status, access_until')
+      .eq('user_id', session.user.id)
+      .maybeSingle();
+
+    if (!sub) return;
+
+    const today     = new Date().toISOString().slice(0, 10);
+    const hasAccess = sub.status === 'active'
+      || (sub.status === 'cancelling' && sub.access_until && sub.access_until >= today);
+
+    if (hasAccess) unlockPro();
   }
 
   // ─────────────────────────────────────────────
@@ -3073,11 +3092,28 @@
   // INIT
   // ─────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-    // Check for post-payment redirect
+    // Check for post-payment redirect (?welcome=1 from PayFast return_url)
     const params = new URLSearchParams(location.search);
-    if (params.get('upgrade') === 'success') {
-      unlockPro();
+    if (params.get('welcome') === '1') {
       history.replaceState({}, '', location.pathname);
+      // Poll for subscription up to 30s (webhook may fire a few seconds after redirect)
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        attempts++;
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { clearInterval(poll); return; }
+        const { data: sub } = await sb
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+        if (sub && sub.status === 'active') {
+          clearInterval(poll);
+          unlockPro();
+        } else if (attempts >= 15) {
+          clearInterval(poll);
+        }
+      }, 2000);
     }
 
     // Start in goal mode
@@ -3098,6 +3134,7 @@
     initTooltips();
     applySolveFor(STATE.solveFor);
     recalculate();
+    initProState(); // async Supabase check — unlocks Pro if session has active subscription
 
     // Resize Chart.js canvases to match the fixed print height before printing,
     // then restore them to container-fit after the print dialog closes.
