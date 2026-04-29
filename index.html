@@ -1025,9 +1025,9 @@
     #pricing { background: var(--bg-2); }
     .pricing-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 20px;
-      max-width: 760px;
+      max-width: 1060px;
       margin: 0 auto;
     }
     .pricing-card {
@@ -1077,6 +1077,53 @@
     }
     .pricing-card.free .pricing-tier { color: var(--text-dim); }
     .pricing-card.pro .pricing-tier { color: var(--amber); }
+    .pricing-card.annual {
+      background: var(--bg-card);
+      border: 1px solid rgba(16,185,129,0.35);
+      box-shadow: 0 0 40px rgba(16,185,129,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .pricing-card.annual::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .pricing-card.annual .pricing-tier { color: #10b981; }
+    .annual-badge {
+      background: #10b981 !important;
+      color: #fff !important;
+    }
+    .pricing-saving {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #10b981;
+      background: rgba(16,185,129,0.12);
+      border-radius: 20px;
+      padding: 1px 7px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .btn-pricing-annual {
+      display: block;
+      text-align: center;
+      padding: 13px;
+      background: #10b981;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.1s;
+      box-shadow: 0 0 20px rgba(16,185,129,0.25);
+    }
+    .btn-pricing-annual:hover { box-shadow: 0 0 32px rgba(16,185,129,0.45); transform: translateY(-1px); }
     .pricing-price {
       font-family: var(--serif);
       font-size: 2.6rem;
@@ -1291,7 +1338,7 @@
       .feature-row.reversed .feature-visual { order: 2; }
       .steps-grid { grid-template-columns: 1fr; }
       .steps-grid::before { display: none; }
-      .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 420px; }
       .footer-links { gap: 28px; }
       .footer-top { flex-direction: column; }
     }
@@ -1548,7 +1595,7 @@
   <div class="section-header centered">
     <div class="section-eyebrow">Pricing</div>
     <h2 class="section-title">Start free. Go Pro when you're ready.</h2>
-    <p class="section-sub">The core calculator is completely free, forever. Pro unlocks advanced planning tools for R39/month.</p>
+    <p class="section-sub">The core calculator is completely free, forever. Pro unlocks advanced planning tools for R39/month — or save with an annual subscription.</p>
   </div>
   <div class="pricing-grid">
 
@@ -1587,6 +1634,24 @@
       </ul>
       <button type="button" class="btn-pricing-pro" onclick="openProModal()">Unlock Pro — R39/month</button>
       <div class="pricing-cancel">Cancel anytime · No contract</div>
+    </div>
+
+    <div class="pricing-card annual">
+      <div class="pricing-badge annual-badge">Best Value</div>
+      <div class="pricing-tier">Pro Annual</div>
+      <div class="pricing-price">R399</div>
+      <div class="pricing-period">per year <span class="pricing-saving">Save R69</span></div>
+      <ul class="pricing-features">
+        <li>Everything in Pro</li>
+        <li>Forecast After Target</li>
+        <li>Inflation-Adjusted Returns</li>
+        <li>3-Scenario Comparison</li>
+        <li>SA Tax Analysis (CGT + DWT)</li>
+        <li>Export to PDF</li>
+        <li>Sources &amp; Validation tab</li>
+      </ul>
+      <button type="button" class="btn-pricing-annual" onclick="openProModal()">Unlock Pro Annual — R399/yr</button>
+      <div class="pricing-cancel">12-month access · No auto-renewal</div>
     </div>
 
   </div>
