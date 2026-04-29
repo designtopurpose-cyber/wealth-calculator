@@ -930,7 +930,7 @@
 
     /* ── Print ── */
     @media print {
-      /* ── Override dark colour tokens to light theme ── */
+      /* ── Light colour tokens ── */
       :root {
         --bg:          #ffffff;
         --bg-2:        #f8fafc;
@@ -952,7 +952,7 @@
         --shadow:      none;
         --shadow-md:   none;
       }
-      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; }
 
       body { background: #fff !important; color: #0f172a !important; }
 
@@ -974,21 +974,24 @@
         padding: 8px 20px;
       }
 
-      /* ── Main: single-column block flow ── */
+      /* ── Main: single-column block, no side padding bleed ── */
       main {
         display: block;
         max-width: 100%;
-        padding: 12px 20px;
+        width: 100%;
+        padding: 12px 0;
         margin: 0;
       }
 
-      /* ── All cards: white, border, no shadow ── */
+      /* ── Cards: white, border, contained (no overflow escape) ── */
       .card {
         background: #fff !important;
         box-shadow: none !important;
         border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
         margin-bottom: 12px;
-        overflow: visible;
+        width: 100%;
       }
 
       /* ── Summary bar: 4-column grid, full width ── */
@@ -996,12 +999,23 @@
         display: grid !important;
         grid-template-columns: repeat(4, 1fr) !important;
         margin-bottom: 12px;
+        border-radius: 8px !important;
       }
       .stat { border-right-color: #e2e8f0 !important; }
 
-      /* ── Chart: block with fixed height so canvas stays sized ── */
-      .chart-card { display: block !important; page-break-inside: avoid; }
-      .chart-wrapper { position: relative !important; height: 300px !important; flex: none !important; min-height: 0 !important; }
+      /* ── Main chart: no splitting ── */
+      .chart-card {
+        display: block !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .chart-wrapper {
+        position: relative !important;
+        height: 300px !important;
+        flex: none !important;
+        min-height: 0 !important;
+        width: 100% !important;
+      }
 
       /* ── TFSA panel ── */
       #tfsaPanelWrap { display: none !important; }
@@ -1009,12 +1023,66 @@
       .tfsa-progress-bar { background: #e2e8f0 !important; }
       .tfsa-compare-item, .tfsa-penalty-item { background: #f8fafc !important; }
       .tfsa-saving-row { background: rgba(5,150,105,0.08) !important; }
+      .tfsa-panel { flex-wrap: wrap; }
 
-      /* ── Pro section: show active tab content ── */
+      /* ── Pro section ── */
       #proWrap { max-height: none !important; overflow: visible !important; display: block !important; }
-      #proWrap .pro-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+      #proWrap .pro-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; overflow: hidden !important; }
       .pro-tab-panel { display: none !important; }
       .pro-tab-panel.active { display: block !important; }
+
+      /* ── Forecast tab: stack inputs/stats above chart ── */
+      .forecast-inner {
+        display: block !important;
+      }
+      .forecast-inputs { padding: 12px 16px 8px !important; }
+      .forecast-stats { padding: 8px 16px 12px !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 20px !important; }
+      .forecast-sep { display: none !important; }
+      .forecast-chart-section {
+        padding: 8px 16px 16px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .forecast-chart-wrap {
+        height: 260px !important;
+        flex: none !important;
+        min-height: 0 !important;
+        width: 100% !important;
+      }
+
+      /* ── Inflation tab: stack inputs above chart ── */
+      .inflation-inner {
+        grid-template-columns: 1fr !important;
+        padding: 12px 16px !important;
+      }
+      .inflation-chart-wrap {
+        height: 240px !important;
+        width: 100% !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      /* ── Scenarios tab: keep 3-col grid but contain it ── */
+      .scenarios-inner { padding: 12px 16px !important; }
+      .scenarios-grid { min-width: 0; }
+      .scenario-col { background: #f8fafc !important; min-width: 0; }
+      .scenarios-chart-wrap {
+        height: 220px !important;
+        width: 100% !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      /* ── Tax tab: stack columns ── */
+      .tax-inner {
+        grid-template-columns: 1fr !important;
+        padding: 12px 16px !important;
+      }
+      .tax-result-item { background: #f8fafc !important; }
+
+      /* ── RA section ── */
+      .ra-section { background: #f8fafc !important; }
+      .ra-result-item { background: #fff !important; border-color: #e2e8f0 !important; }
     }
 
     /* ── TFSA Panel ── */
