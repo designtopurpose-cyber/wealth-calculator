@@ -974,12 +974,12 @@
         padding: 8px 20px;
       }
 
-      /* ── Main: single-column block, no side padding bleed ── */
+      /* ── Main: single-column block with side breathing room ── */
       main {
         display: block;
         max-width: 100%;
         width: 100%;
-        padding: 12px 0;
+        padding: 12px 16px;
         margin: 0;
       }
 
@@ -1027,7 +1027,8 @@
 
       /* ── Pro section ── */
       #proWrap { max-height: none !important; overflow: visible !important; display: block !important; }
-      #proWrap .pro-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; overflow: hidden !important; }
+      #proWrap .pro-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; overflow: visible !important; }
+      canvas { max-width: 100% !important; }
       .pro-tab-panel { display: none !important; }
       .pro-tab-panel.active { display: block !important; }
 
@@ -1039,7 +1040,7 @@
       .forecast-stats { padding: 8px 16px 12px !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 20px !important; }
       .forecast-sep { display: none !important; }
       .forecast-chart-section {
-        padding: 8px 16px 16px !important;
+        padding: 8px 16px 20px !important;
         break-inside: avoid;
         page-break-inside: avoid;
       }
@@ -1050,20 +1051,24 @@
         width: 100% !important;
       }
 
-      /* ── Inflation tab: stack inputs above chart ── */
+      /* ── Inflation tab: stack inputs above chart, whole section avoids breaks ── */
       .inflation-inner {
         grid-template-columns: 1fr !important;
-        padding: 12px 16px !important;
+        padding: 12px 16px 20px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
       .inflation-chart-wrap {
         height: 240px !important;
         width: 100% !important;
+      }
+
+      /* ── Scenarios tab: whole section avoids breaks ── */
+      .scenarios-inner {
+        padding: 12px 16px 20px !important;
         break-inside: avoid;
         page-break-inside: avoid;
       }
-
-      /* ── Scenarios tab: keep 3-col grid but contain it ── */
-      .scenarios-inner { padding: 12px 16px !important; }
       .scenarios-grid { min-width: 0; }
       .scenario-col { background: #f8fafc !important; min-width: 0; }
       .scenarios-chart-wrap {
@@ -3095,7 +3100,7 @@
     // Resize Chart.js canvases to match the fixed print height before printing,
     // then restore them to container-fit after the print dialog closes.
     window.addEventListener('beforeprint', () => {
-      [chart, forecastChart, inflationChart, scenariosChart].forEach(c => { if (c) c.resize(700, 280); });
+      [chart, forecastChart, inflationChart, scenariosChart].forEach(c => { if (c) c.resize(580, 260); });
     });
     window.addEventListener('afterprint', () => {
       [chart, forecastChart, inflationChart, scenariosChart].forEach(c => { if (c) c.resize(); });
