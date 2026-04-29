@@ -962,6 +962,16 @@
     .tfsa-compare-value.tfsa-val { color: var(--green); }
     .tfsa-compare-value.taxed-val { color: var(--text-muted); }
     .tfsa-saving-row { padding: 8px 12px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.18); border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--green); display: flex; justify-content: space-between; align-items: center; }
+    .tfsa-penalty-box { display: none; background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.25); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 12px; }
+    .tfsa-penalty-box.show { display: block; }
+    .tfsa-penalty-title { font-size: 0.78rem; font-weight: 700; color: #f87171; margin-bottom: 10px; }
+    .tfsa-penalty-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .tfsa-penalty-item { background: var(--bg); border-radius: var(--radius-sm); padding: 8px 10px; }
+    .tfsa-penalty-label { font-size: 0.68rem; color: var(--text-muted); margin-bottom: 2px; }
+    .tfsa-penalty-value { font-size: 0.88rem; font-weight: 700; color: var(--text); font-family: var(--serif); }
+    .tfsa-penalty-value.tfsa-neg { color: #f87171; }
+    .tfsa-penalty-note { font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
+    @media (max-width: 480px) { .tfsa-penalty-grid { grid-template-columns: 1fr 1fr; } }
 
     /* ── RA Section ── */
     .ra-section { margin-top: 16px; padding: 14px 16px; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border); }
@@ -1158,25 +1168,41 @@
   <div id="tfsaPanelWrap">
     <div class="tfsa-panel">
       <div class="tfsa-panel-title">TFSA Summary</div>
+
+      <!-- Annual contribution + limit badge -->
       <div class="tfsa-limit-row">
         Annual contribution: <strong id="tfsaAnnualAmt">—</strong>
         <span class="tfsa-limit-badge" id="tfsaLimitBadge">within R46,000 annual limit</span>
       </div>
-      <div class="tfsa-stats">
-        <div class="tfsa-stat">
-          <div class="tfsa-stat-label">Annual Limit (2025)</div>
-          <div class="tfsa-stat-value">R 46,000</div>
+
+      <!-- SARS penalty warning (shown only when over annual limit) -->
+      <div class="tfsa-penalty-box" id="tfsaPenaltyBox">
+        <div class="tfsa-penalty-title">⚠ SARS 40% Over-Contribution Penalty Applies</div>
+        <div class="tfsa-penalty-grid">
+          <div class="tfsa-penalty-item">
+            <div class="tfsa-penalty-label">Annual Excess</div>
+            <div class="tfsa-penalty-value" id="tfsaExcessAnnual">—</div>
+          </div>
+          <div class="tfsa-penalty-item">
+            <div class="tfsa-penalty-label">Annual SARS Penalty (40%)</div>
+            <div class="tfsa-penalty-value tfsa-neg" id="tfsaPenaltyAnnual">—</div>
+          </div>
+          <div class="tfsa-penalty-item">
+            <div class="tfsa-penalty-label">Total Penalty Over Period</div>
+            <div class="tfsa-penalty-value tfsa-neg" id="tfsaPenaltyTotal">—</div>
+          </div>
         </div>
-        <div class="tfsa-stat">
-          <div class="tfsa-stat-label">Lifetime Limit</div>
-          <div class="tfsa-stat-value">R 500,000</div>
-        </div>
+        <p class="tfsa-penalty-note">SARS levies a 40% penalty tax on any contributions exceeding the annual TFSA limit (Section 12T, Income Tax Act). Reduce your monthly contribution to <strong>R<span id="tfsaMaxMonthly">3,833</span></strong> to stay within the R46,000 annual limit and avoid this penalty.</p>
       </div>
-      <div class="tfsa-progress-wrap">
+
+      <!-- Lifetime progress bar (shown only when within annual limit) -->
+      <div class="tfsa-progress-wrap" id="tfsaProgressWrap">
         <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px">Lifetime contributions toward R500,000 cap</div>
         <div class="tfsa-progress-bar"><div class="tfsa-progress-fill" id="tfsaProgressFill" style="width:0%"></div></div>
         <div class="tfsa-progress-label" id="tfsaProgressLabel">—</div>
       </div>
+
+      <!-- TFSA vs taxed comparison -->
       <div class="tfsa-compare">
         <div class="tfsa-compare-item">
           <div class="tfsa-compare-label">TFSA Portfolio (tax-free)</div>
@@ -1950,7 +1976,7 @@
 
     const months = (targetAge - currentAge) * 12;
 
-    if (STATE.mode === 'projection') {
+    if (STATE.mode === 'projection' || STATE.mode === 'tfsa') {
       const P   = getCurrencyValue('initialCapital');
       const r   = getRateValue('annualRate');
       const PMT = getCurrencyValue('monthlyContrib');
@@ -2624,20 +2650,33 @@
   // TFSA MODE
   // ─────────────────────────────────────────────
   function recalculateTfsa() {
-    const FV      = STATE.lastFV;
+    // Use STATE values set by recalculate() — never read goal-solver fields
+    const FV       = STATE.lastFV;
     const contribs = STATE.lastContrib;
-    const PMT    = FORMAT.parseCurrency($('monthlyContrib').value);
-    const P      = FORMAT.parseCurrency($('initialCapital').value);
-    const r      = FORMAT.parsePercent($('annualRate').value) / 100;
+    const PMT      = STATE.lastPMT;
+    const P        = STATE.lastP;
+    const r        = STATE.lastR;
     const currentAge = getIntValue('currentAge');
-    const targetAge  = getIntValue('targetAge');
-    const years  = Math.max(0, targetAge - currentAge);
+    const targetAge  = STATE.lastTargetAge;
+    const years      = Math.max(0, targetAge - currentAge);
 
-    const annualContrib   = PMT * 12;
-    const lifetimeContrib = Math.max(P, 0) + annualContrib * years;
-    const overLimit       = annualContrib > 46000;
-    const lifetimePct     = Math.min(lifetimeContrib / 500000 * 100, 100);
+    const ANNUAL_LIMIT   = 46000;
+    const LIFETIME_LIMIT = 500000;
+    const PENALTY_RATE   = 0.40;
 
+    const annualContrib  = PMT * 12;
+    const overLimit      = annualContrib > ANNUAL_LIMIT;
+    const excessAnnual   = Math.max(0, annualContrib - ANNUAL_LIMIT);
+    const penaltyAnnual  = excessAnnual * PENALTY_RATE;
+    const penaltyTotal   = penaltyAnnual * years;
+    const maxMonthly     = Math.floor(ANNUAL_LIMIT / 12);   // 3833
+
+    // Lifetime: cap each year's contribution at ANNUAL_LIMIT
+    const allowedAnnual   = Math.min(annualContrib, ANNUAL_LIMIT);
+    const lifetimeContrib = Math.max(P, 0) + allowedAnnual * years;
+    const lifetimePct     = Math.min(lifetimeContrib / LIFETIME_LIMIT * 100, 100);
+
+    // Taxed-account equivalent (uses tax tab settings; defaults to 18% eff. CGT / 20% DWT)
     const inclusion = FORMAT.parsePercent($('taxCgtInclusion').value) / 100;
     const marginal  = FORMAT.parsePercent($('taxMarginal').value) / 100;
     const cgtEff    = inclusion * marginal;
@@ -2650,13 +2689,13 @@
     }
     const taxSaved = Math.max(0, FV - taxedFV);
 
+    // Taxed-equivalent series for chart overlay
     const taxedSeries = MATH.buildYearSeries(P, r, PMT, currentAge, targetAge).map(s => {
       const gain = Math.max(0, s.value - s.contributions);
-      const cgtP = gain * split * cgtEff;
-      const dwtP = gain * (1 - split) * dwt;
-      return { age: s.age, value: Math.max(0, s.value - cgtP - dwtP) };
+      return { age: s.age, value: Math.max(0, s.value - gain * split * cgtEff - gain * (1 - split) * dwt) };
     });
 
+    // ── Header row ──
     $('tfsaAnnualAmt').textContent = 'R ' + FORMAT.currency(annualContrib);
     const badge = $('tfsaLimitBadge');
     if (overLimit) {
@@ -2667,11 +2706,27 @@
       badge.classList.remove('over');
     }
 
-    const fill = $('tfsaProgressFill');
-    fill.style.width = lifetimePct.toFixed(1) + '%';
-    if (lifetimePct >= 85) fill.classList.add('near'); else fill.classList.remove('near');
-    $('tfsaProgressLabel').textContent = `R ${FORMAT.currency(lifetimeContrib)} contributed · ${lifetimePct.toFixed(0)}% of R500,000 lifetime cap`;
+    // ── Penalty section (show/hide) ──
+    const penaltyBox   = $('tfsaPenaltyBox');
+    const progressWrap = $('tfsaProgressWrap');
+    if (overLimit) {
+      penaltyBox.classList.add('show');
+      progressWrap.style.display = 'none';
+      $('tfsaExcessAnnual').textContent  = 'R ' + FORMAT.currency(excessAnnual);
+      $('tfsaPenaltyAnnual').textContent = 'R ' + FORMAT.currency(penaltyAnnual);
+      $('tfsaPenaltyTotal').textContent  = 'R ' + FORMAT.currency(penaltyTotal);
+      $('tfsaMaxMonthly').textContent    = FORMAT.currency(maxMonthly);
+    } else {
+      penaltyBox.classList.remove('show');
+      progressWrap.style.display = 'block';
+      const fill = $('tfsaProgressFill');
+      fill.style.width = lifetimePct.toFixed(1) + '%';
+      if (lifetimePct >= 85) fill.classList.add('near'); else fill.classList.remove('near');
+      $('tfsaProgressLabel').textContent =
+        `R ${FORMAT.currency(lifetimeContrib)} contributed · ${lifetimePct.toFixed(0)}% of R500,000 lifetime cap`;
+    }
 
+    // ── Comparison ──
     $('tfsaValue').textContent      = 'R ' + FORMAT.currency(FV);
     $('tfsaTaxedValue').textContent = 'R ' + FORMAT.currency(taxedFV);
     $('tfsaTaxSaved').textContent   = 'R ' + FORMAT.currency(taxSaved);
