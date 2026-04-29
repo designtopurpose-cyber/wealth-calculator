@@ -169,12 +169,25 @@
     <!-- Actions -->
     <div id="actionButtons" style="display:none; display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
       <a href="calculator.html" class="btn btn-amber">Open Calculator</a>
+      <button class="btn btn-outline" id="btnUpgrade" style="display:none;">Upgrade to Annual — save R69/yr</button>
       <button class="btn btn-outline" id="btnLogout">Log out</button>
       <button class="btn btn-danger" id="btnCancel" style="display:none;">Cancel subscription</button>
     </div>
 
     <div id="actionMsg" style="min-height:20px;"></div>
 
+  </div>
+</div>
+
+<!-- Upgrade confirmation dialog -->
+<div class="confirm-backdrop" id="upgradeBackdrop">
+  <div class="confirm-box" style="border-color:rgba(245,158,11,0.25);">
+    <h3>Upgrade to Pro Annual?</h3>
+    <p>Your monthly billing will end and you'll be taken to PayFast to start annual billing at <strong style="color:#f1f5f9;">R399/year</strong>. You save R69 compared to paying monthly.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" id="upgradeNo">Keep monthly</button>
+      <button class="btn btn-amber" id="upgradeYes">Upgrade to Annual</button>
+    </div>
   </div>
 </div>
 
@@ -192,6 +205,8 @@
     </div>
   </div>
 </div>
+
+<form id="pfUpgradeForm" method="POST" style="display:none;"></form>
 
 <script>
 (function () {
@@ -214,8 +229,13 @@
   }
 
   function renderSub(sub) {
-    const subContent = $('subContent');
-    const btnCancel  = $('btnCancel');
+    const subContent  = $('subContent');
+    const btnCancel   = $('btnCancel');
+    const btnUpgrade  = $('btnUpgrade');
+
+    // Always reset buttons
+    btnCancel.style.display  = 'none';
+    btnUpgrade.style.display = 'none';
 
     if (!sub) {
       subContent.innerHTML = `
@@ -248,8 +268,9 @@
       </div>
       ${renewLine}`;
 
-    if (hasAccess && (sub.status === 'active' || sub.status === 'cancelling')) {
-      btnCancel.style.display = sub.status === 'active' ? 'block' : 'none';
+    if (hasAccess && sub.status === 'active') {
+      btnCancel.style.display  = 'block';
+      btnUpgrade.style.display = sub.plan === 'monthly' ? 'block' : 'none';
     }
   }
 
@@ -275,6 +296,60 @@
       .maybeSingle();
 
     renderSub(sub);
+
+    // Upgrade button
+    $('btnUpgrade').addEventListener('click', () => {
+      $('upgradeBackdrop').classList.add('open');
+    });
+
+    $('upgradeNo').addEventListener('click', () => {
+      $('upgradeBackdrop').classList.remove('open');
+    });
+
+    $('upgradeYes').addEventListener('click', async () => {
+      $('upgradeBackdrop').classList.remove('open');
+      const btn = $('btnUpgrade');
+      btn.disabled    = true;
+      btn.textContent = 'Preparing upgrade…';
+      $('actionMsg').innerHTML = '';
+
+      try {
+        const res = await fetch('/api/upgrade', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ access_token: session.access_token }),
+        });
+
+        let json;
+        try { json = await res.json(); } catch { json = {}; }
+
+        btn.disabled    = false;
+        btn.textContent = 'Upgrade to Annual — save R69/yr';
+
+        if (!res.ok) {
+          $('actionMsg').innerHTML =
+            `<p class="error-msg">${json.error || 'Something went wrong. Please try again.'}</p>`;
+          return;
+        }
+
+        // Submit to PayFast
+        const form = $('pfUpgradeForm');
+        form.action = json.pfUrl;
+        form.innerHTML = '';
+        Object.entries(json.params).forEach(([k, v]) => {
+          const inp = document.createElement('input');
+          inp.type  = 'hidden';
+          inp.name  = k;
+          inp.value = v;
+          form.appendChild(inp);
+        });
+        form.submit();
+      } catch {
+        btn.disabled    = false;
+        btn.textContent = 'Upgrade to Annual — save R69/yr';
+        $('actionMsg').innerHTML = '<p class="error-msg">Network error — please try again.</p>';
+      }
+    });
 
     // Cancel button
     $('btnCancel').addEventListener('click', () => {

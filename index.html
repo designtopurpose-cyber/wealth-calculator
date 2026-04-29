@@ -1979,6 +1979,8 @@
   .plan-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
   .plan-name { font-size: 0.9rem; font-weight: 700; color: #f1f5f9; }
   .plan-price { font-size: 1.1rem; font-weight: 800; color: #f59e0b; font-family: 'Playfair Display', Georgia, serif; }
+  .plan-check { display: none; width: 18px; height: 18px; border-radius: 50%; background: #f59e0b; color: #0a0a0a; font-size: 0.65rem; font-weight: 900; align-items: center; justify-content: center; flex-shrink: 0; }
+  .plan-card.selected .plan-check { display: flex; }
   .plan-desc { font-size: 0.77rem; color: #94a3b8; }
   .plan-save {
     font-size: 0.68rem; font-weight: 700; color: #10b981;
@@ -2052,14 +2054,20 @@
         <div class="plan-card" id="planMonthly" onclick="selectPlan('monthly')">
           <div class="plan-card-header">
             <span class="plan-name">Pro Monthly</span>
-            <span class="plan-price">R39<span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/mo</span></span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="plan-price">R39<span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/mo</span></span>
+              <span class="plan-check">✓</span>
+            </div>
           </div>
           <div class="plan-desc">Renews monthly · Cancel anytime</div>
         </div>
         <div class="plan-card" id="planAnnual" onclick="selectPlan('annual')">
           <div class="plan-card-header">
             <span class="plan-name">Pro Annual <span class="plan-save">Save R69</span></span>
-            <span class="plan-price">R399<span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/yr</span></span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="plan-price">R399<span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/yr</span></span>
+              <span class="plan-check">✓</span>
+            </div>
           </div>
           <div class="plan-desc">Renews annually · Cancel anytime · Reminder email 3 weeks before renewal</div>
         </div>
@@ -2231,30 +2239,38 @@
     btn.textContent = 'Preparing payment…';
     setMsg('planMsg', '', false);
 
-    const res = await fetch('/api/payfast-init', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ plan: selectedPlan, access_token: currentSession.access_token }),
-    });
-    const json = await res.json();
+    try {
+      const res = await fetch('/api/payfast-init', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ plan: selectedPlan, access_token: currentSession.access_token }),
+      });
 
-    btn.disabled    = false;
-    btn.textContent = 'Continue to payment →';
+      let json;
+      try { json = await res.json(); } catch { json = {}; }
 
-    if (!res.ok) { setMsg('planMsg', json.error || 'Something went wrong.', true); return; }
+      btn.disabled    = false;
+      btn.textContent = 'Continue to payment →';
 
-    // Build and submit PayFast form
-    const form = $('pfForm');
-    form.action = json.pfUrl;
-    form.innerHTML = '';
-    Object.entries(json.params).forEach(([k, v]) => {
-      const inp  = document.createElement('input');
-      inp.type   = 'hidden';
-      inp.name   = k;
-      inp.value  = v;
-      form.appendChild(inp);
-    });
-    form.submit();
+      if (!res.ok) { setMsg('planMsg', json.error || 'Something went wrong. Please try again.', true); return; }
+
+      // Build and submit PayFast form
+      const form = $('pfForm');
+      form.action = json.pfUrl;
+      form.innerHTML = '';
+      Object.entries(json.params).forEach(([k, v]) => {
+        const inp  = document.createElement('input');
+        inp.type   = 'hidden';
+        inp.name   = k;
+        inp.value  = v;
+        form.appendChild(inp);
+      });
+      form.submit();
+    } catch {
+      btn.disabled    = false;
+      btn.textContent = 'Continue to payment →';
+      setMsg('planMsg', 'Network error — please try again.', true);
+    }
   });
 
   $('btnPlanLogout').addEventListener('click', async () => {
@@ -2310,8 +2326,9 @@
     updateNavAuth(session);
   });
 
-  // Expose openProModal globally (called from pricing card buttons)
+  // Expose globals (called from inline onclick attributes)
   window.openProModal = openProModal;
+  window.selectPlan   = selectPlan;
 })();
 </script>
 </body>
