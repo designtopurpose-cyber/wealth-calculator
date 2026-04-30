@@ -43,16 +43,16 @@ function sbHeaders() {
 
 // ── PayFast signature verification ───────────────────────────────────────────
 
-function verifySignature(data, passphrase) {
-  const str = Object.keys(data)
-    .filter(k => k !== 'signature' && data[k] !== '' && data[k] != null)
-    .sort()
-    .map(k => `${k}=${encodeURIComponent(String(data[k])).replace(/%20/g, '+')}`)
-    .join('&');
+function verifySignature(rawBody, signature, passphrase) {
+  // Use raw URL-encoded values from the body so encoding matches PayFast exactly
+  const pairs = rawBody.split('&')
+    .filter(pair => pair !== '' && pair.split('=')[0] !== 'signature')
+    .sort((a, b) => a.split('=')[0].localeCompare(b.split('=')[0]));
+  const str  = pairs.join('&');
   const full = passphrase
     ? `${str}&passphrase=${encodeURIComponent(passphrase).replace(/%20/g, '+')}`
     : str;
-  return crypto.createHash('md5').update(full).digest('hex') === data.signature;
+  return crypto.createHash('md5').update(full).digest('hex') === signature;
 }
 
 async function validateWithPayFast(body) {
@@ -101,10 +101,10 @@ async function handler(req, res) {
   const rawBody = Buffer.concat(chunks).toString('utf8');
   const data    = Object.fromEntries(new URLSearchParams(rawBody));
 
-  const { payment_status, token, custom_str1: userId, custom_str2: plan, amount_gross } = data;
+  const { payment_status, token, custom_str1: userId, custom_str2: plan } = data;
 
   // 1. Verify signature
-  if (!verifySignature(data, PF_PASSPHRASE || null)) {
+  if (!verifySignature(rawBody, data.signature, PF_PASSPHRASE || null)) {
     console.error('PayFast ITN: signature mismatch');
     return res.status(400).send('Invalid signature');
   }
