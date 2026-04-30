@@ -2088,6 +2088,15 @@
       <a href="account.html" class="auth-btn-outline" style="margin-top:10px;">Manage subscription</a>
     </div>
 
+    <!-- View 4: Email verification pending -->
+    <div id="viewVerifyEmail" style="display:none;">
+      <div class="auth-icon">📧</div>
+      <div class="auth-title">Check your inbox</div>
+      <p class="auth-sub" style="margin-bottom:18px;">We sent a confirmation link to <strong id="verifyEmailAddr"></strong>. Click it to activate your account, then come back here to subscribe.</p>
+      <p style="font-size:0.82rem;color:var(--text-mid);margin-bottom:18px;">Can't find it? Check your spam folder. The link expires in 24 hours.</p>
+      <button type="button" class="auth-btn-primary" style="width:100%;" onclick="document.getElementById('authBackdrop').classList.remove('open');document.body.style.overflow='';">Done</button>
+    </div>
+
     <!-- Hidden PayFast form — auto-submitted on payment -->
     <form id="pfForm" action="https://www.payfast.co.za/eng/process" method="post" style="display:none;"></form>
   </div>
@@ -2107,7 +2116,7 @@
   function $ (id) { return document.getElementById(id); }
 
   function showView(name) {
-    ['viewAuth', 'viewPlans', 'viewSubscribed'].forEach(v => {
+    ['viewAuth', 'viewPlans', 'viewSubscribed', 'viewVerifyEmail'].forEach(v => {
       $(v).style.display = v === name ? 'block' : 'none';
     });
   }
@@ -2180,6 +2189,19 @@
     btn.textContent = isSignup ? 'Create account' : 'Log in';
 
     if (error) { setMsg('authMsg', error.message, true); return; }
+
+    if (isSignup) {
+      // Email confirmation is ON — session will be null until user clicks the link
+      const { data: { session: newSession } } = await sb.auth.getSession();
+      if (!newSession) {
+        $('verifyEmailAddr').textContent = email;
+        showView('viewVerifyEmail');
+        return;
+      }
+      currentSession = newSession;
+      await afterAuth(newSession);
+      return;
+    }
 
     const { data: { session } } = await sb.auth.getSession();
     currentSession = session;
