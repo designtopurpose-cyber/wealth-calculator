@@ -2270,14 +2270,13 @@
         body:    JSON.stringify({ plan: selectedPlan, access_token: currentSession.access_token }),
       });
 
-      const rawText = await res.text();
       let json;
-      try { json = JSON.parse(rawText); } catch { json = {}; }
+      try { json = await res.json(); } catch { json = {}; }
 
       btn.disabled    = false;
       btn.textContent = 'Continue to payment →';
 
-      if (!res.ok) { setMsg('planMsg', `[${res.status}] ${json.error || rawText.slice(0, 120)}`, true); return; }
+      if (!res.ok) { setMsg('planMsg', json.error || 'Something went wrong. Please try again.', true); return; }
 
       // Build and submit PayFast form
       const form = $('pfForm');
