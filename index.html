@@ -1370,6 +1370,7 @@
     <li><a href="#pricing">Pricing</a></li>
     <li><a href="#faq">FAQ</a></li>
     <li><a href="calculator.html" class="nav-cta">Launch Calculator →</a></li>
+    <li><button id="navLoginBtn" onclick="openProModal('monthly')" style="background:none;border:1px solid rgba(245,158,11,0.45);color:#f59e0b;font-weight:600;font-size:0.88rem;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:inherit;line-height:1;">Sign in</button></li>
     <li><a href="account.html" id="navAccountBtn" style="display:none;font-weight:600;color:#f59e0b;">My Account</a></li>
   </ul>
   <button class="nav-hamburger" id="hamburger" aria-label="Open menu">
@@ -1386,6 +1387,7 @@
   <a href="#pricing">Pricing</a>
   <a href="#faq">FAQ</a>
   <a href="calculator.html" class="nav-cta">Launch Calculator →</a>
+  <a href="#" id="mobileLoginBtn" onclick="openProModal('monthly');return false;" style="color:#f59e0b;font-weight:600;">Sign in / Sign up</a>
   <a href="account.html" id="mobileAccountBtn" style="display:none;color:#f59e0b;font-weight:600;">My Account</a>
 </nav>
 
@@ -2338,6 +2340,8 @@
 
   function updateNavAuth(session) {
     const show = !!session;
+    $('navLoginBtn').style.display      = show ? 'none' : '';
+    $('mobileLoginBtn').style.display   = show ? 'none' : '';
     $('navAccountBtn').style.display    = show ? '' : 'none';
     $('mobileAccountBtn').style.display = show ? '' : 'none';
   }
