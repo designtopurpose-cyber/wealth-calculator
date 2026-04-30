@@ -1,7 +1,4 @@
 {
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" }
-  ],
   "crons": [
     { "path": "/api/renewal-reminder", "schedule": "0 6 * * *" }
   ],
