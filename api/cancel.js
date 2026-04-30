@@ -45,7 +45,7 @@ async function patchSubscription(userId, data) {
   await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}`, {
     method:  'PATCH',
     headers: sbHeaders(),
-    body:    JSON.stringify({ ...data, updated_at: new Date().toISOString() }),
+    body:    JSON.stringify(data),
   });
 }
 

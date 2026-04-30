@@ -134,45 +134,49 @@ async function handler(req, res) {
       ? await sbGet('subscriptions', `user_id=eq.${userId}`)
       : null;
 
-    if (existing) {
-      await sbPatch('subscriptions', `user_id=eq.${userId}`, {
-        status:                    'active',
-        plan:                      plan || existing.plan,
-        payfast_subscription_token: token || existing.payfast_subscription_token,
-        next_billing_date:          nextBilling,
-        access_until:              accessUntil,
-        updated_at:                new Date().toISOString(),
-      });
-    } else if (userId) {
-      await sbUpsert('subscriptions', {
-        user_id:                   userId,
-        plan:                      plan || 'monthly',
-        status:                    'active',
-        payfast_subscription_token: token,
-        next_billing_date:          nextBilling,
-        access_until:              accessUntil,
-      });
+    try {
+      if (existing) {
+        await sbPatch('subscriptions', `user_id=eq.${userId}`, {
+          status:                    'active',
+          plan:                      plan || existing.plan,
+          payfast_subscription_token: token || existing.payfast_subscription_token,
+          next_billing_date:          nextBilling,
+          access_until:              accessUntil,
+        });
+      } else if (userId) {
+        await sbUpsert('subscriptions', {
+          user_id:                   userId,
+          plan:                      plan || 'monthly',
+          status:                    'active',
+          payfast_subscription_token: token,
+          next_billing_date:          nextBilling,
+          access_until:              accessUntil,
+        });
+      }
+    } catch (err) {
+      console.error('Supabase write failed (COMPLETE):', err);
     }
 
   } else if (payment_status === 'CANCELLED') {
-    if (!userId) {
-      // Try to find by token
-      const sub = token ? await sbGet('subscriptions', `payfast_subscription_token=eq.${token}`) : null;
-      if (sub) {
-        await sbPatch('subscriptions', `payfast_subscription_token=eq.${token}`, {
-          status:     'cancelled',
-          updated_at: new Date().toISOString(),
-        });
+    try {
+      if (!userId) {
+        const sub = token ? await sbGet('subscriptions', `payfast_subscription_token=eq.${token}`) : null;
+        if (sub) {
+          await sbPatch('subscriptions', `payfast_subscription_token=eq.${token}`, {
+            status: 'cancelled',
+          });
+        }
+      } else {
+        const sub = await sbGet('subscriptions', `user_id=eq.${userId}`);
+        if (sub) {
+          await sbPatch('subscriptions', `user_id=eq.${userId}`, {
+            status:       'cancelled',
+            access_until: sub.next_billing_date || todayStr(),
+          });
+        }
       }
-    } else {
-      const sub = await sbGet('subscriptions', `user_id=eq.${userId}`);
-      if (sub) {
-        await sbPatch('subscriptions', `user_id=eq.${userId}`, {
-          status:       'cancelled',
-          access_until: sub.next_billing_date || todayStr(),
-          updated_at:   new Date().toISOString(),
-        });
-      }
+    } catch (err) {
+      console.error('Supabase write failed (CANCELLED):', err);
     }
   }
 

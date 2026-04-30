@@ -288,6 +288,34 @@
     $('actionButtons').style.display = 'flex';
     $('userEmail').textContent = session.user.email;
 
+    // Post-payment polling: webhook may fire a few seconds after redirect
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get('welcome') === '1' || urlParams.get('upgraded') === '1') {
+      history.replaceState({}, '', location.pathname);
+      $('actionMsg').innerHTML =
+        '<p style="color:var(--amber);font-size:0.85rem;">⏳ Verifying your payment — this can take up to 30 seconds…</p>';
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        attempts++;
+        const { data: pollSub } = await sb
+          .from('subscriptions').select('status')
+          .eq('user_id', session.user.id).maybeSingle();
+        if (pollSub && pollSub.status === 'active') {
+          clearInterval(poll);
+          const { data: fresh } = await sb
+            .from('subscriptions').select('*')
+            .eq('user_id', session.user.id).maybeSingle();
+          renderSub(fresh);
+          $('actionMsg').innerHTML =
+            '<p class="success-msg">✓ Pro access activated. Welcome!</p>';
+        } else if (attempts >= 15) {
+          clearInterval(poll);
+          $('actionMsg').innerHTML =
+            '<p style="color:var(--text-mid);font-size:0.82rem;">Payment received — your account will update shortly. Refresh this page in a minute if Pro is not showing.</p>';
+        }
+      }, 2000);
+    }
+
     // Fetch subscription
     const { data: sub } = await sb
       .from('subscriptions')

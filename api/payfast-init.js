@@ -71,7 +71,7 @@ async function handler(req, res) {
   const params = {
     merchant_id:       PF_MERCHANT_ID,
     merchant_key:      PF_MERCHANT_KEY,
-    return_url:        `${BASE_URL}/calculator.html?welcome=1`,
+    return_url:        `${BASE_URL}/account.html?welcome=1`,
     cancel_url:        `${BASE_URL}/#pricing`,
     notify_url:        `${BASE_URL}/api/webhook`,
     name_first:        nameFirst,
