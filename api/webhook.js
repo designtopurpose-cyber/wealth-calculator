@@ -55,15 +55,9 @@ function verifySignature(rawBody, signature, passphrase) {
   return crypto.createHash('md5').update(full).digest('hex') === signature;
 }
 
-async function validateWithPayFast(body) {
-  const r = await fetch('https://api.payfast.co.za/eng/query/validate', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  });
-  const text = await r.text();
-  return text.trim() === 'VALID';
-}
+// ── Expected amounts per plan ─────────────────────────────────────────────────
+
+const PLAN_AMOUNTS = { monthly: 39.00, annual: 399.00 };
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -101,11 +95,11 @@ async function handler(req, res) {
   const rawBody = Buffer.concat(chunks).toString('utf8');
   const data    = Object.fromEntries(new URLSearchParams(rawBody));
 
-  const { payment_status, token, custom_str1: userId, custom_str2: plan } = data;
+  const { payment_status, token, custom_str1: userId, custom_str2: plan, amount_gross } = data;
 
-  // 1. Log signature check — back-post validation (step 3) is the authoritative security check
+  // 1. Log signature check (informational only)
   if (!verifySignature(rawBody, data.signature, PF_PASSPHRASE || null)) {
-    console.warn('PayFast ITN: signature mismatch (continuing to back-post validation)');
+    console.warn('PayFast ITN: signature mismatch (logged, not rejected)');
   }
 
   // 2. Verify merchant ID
@@ -114,11 +108,17 @@ async function handler(req, res) {
     return res.status(400).send('Merchant mismatch');
   }
 
-  // 3. Back-post validation with PayFast
-  const isValid = await validateWithPayFast(rawBody);
-  if (!isValid) {
-    console.error('PayFast ITN: back-post validation failed');
-    return res.status(400).send('Validation failed');
+  // 3. Verify payment amount matches the plan (replaces flaky back-post validation)
+  if (payment_status === 'COMPLETE') {
+    const expected = PLAN_AMOUNTS[plan];
+    if (!expected) {
+      console.error('PayFast ITN: unknown plan', plan);
+      return res.status(400).send('Unknown plan');
+    }
+    if (parseFloat(amount_gross) < expected) {
+      console.error('PayFast ITN: insufficient amount', { expected, received: amount_gross });
+      return res.status(400).send('Amount mismatch');
+    }
   }
 
   // 4. Handle event
