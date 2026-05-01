@@ -167,9 +167,10 @@
     </div>
 
     <!-- Actions -->
-    <div id="actionButtons" style="display:none; display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+    <div id="actionButtons" style="display:none; flex-direction: column; gap: 12px; margin-top: 8px;">
       <a href="calculator.html" class="btn btn-amber">Open Calculator</a>
       <button class="btn btn-outline" id="btnUpgrade" style="display:none;">Upgrade to Annual — save R69/yr</button>
+      <button class="btn btn-amber" id="btnResubscribe" style="display:none;">Resubscribe →</button>
       <button class="btn btn-outline" id="btnLogout">Log out</button>
       <button class="btn btn-danger" id="btnCancel" style="display:none;">Cancel subscription</button>
     </div>
@@ -208,6 +209,24 @@
 
 <form id="pfUpgradeForm" method="POST" style="display:none;"></form>
 
+<!-- Password reset overlay — shown when user arrives via email reset link -->
+<div id="resetOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#111827;border:1px solid rgba(245,158,11,0.25);border-radius:14px;padding:32px 28px;max-width:380px;width:100%;box-shadow:0 24px 72px rgba(0,0,0,0.75);">
+    <h2 style="font-family:'Playfair Display',Georgia,serif;font-size:1.2rem;color:#f1f5f9;margin-bottom:8px;">Set a new password</h2>
+    <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:20px;">Choose a new password for your MyWealthLens account.</p>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:0.78rem;font-weight:600;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.07em;">New password</label>
+      <input type="password" id="newPwInput" placeholder="Minimum 8 characters" style="width:100%;padding:10px 13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#f1f5f9;font-size:0.9rem;font-family:inherit;outline:none;box-sizing:border-box;" />
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-size:0.78rem;font-weight:600;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.07em;">Confirm password</label>
+      <input type="password" id="confirmPwInput" placeholder="Repeat password" style="width:100%;padding:10px 13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#f1f5f9;font-size:0.9rem;font-family:inherit;outline:none;box-sizing:border-box;" />
+    </div>
+    <div id="resetPwMsg" style="font-size:0.82rem;min-height:18px;margin-bottom:12px;text-align:center;"></div>
+    <button id="btnSetPw" style="width:100%;padding:12px;background:#f59e0b;color:#0a0a0a;border:none;border-radius:8px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;">Update password</button>
+  </div>
+</div>
+
 <script>
 (function () {
   const SUPABASE_URL  = 'https://thvdbfkhedoirdliemsd.supabase.co';
@@ -229,13 +248,15 @@
   }
 
   function renderSub(sub) {
-    const subContent  = $('subContent');
-    const btnCancel   = $('btnCancel');
-    const btnUpgrade  = $('btnUpgrade');
+    const subContent     = $('subContent');
+    const btnCancel      = $('btnCancel');
+    const btnUpgrade     = $('btnUpgrade');
+    const btnResubscribe = $('btnResubscribe');
 
     // Always reset buttons
-    btnCancel.style.display  = 'none';
-    btnUpgrade.style.display = 'none';
+    btnCancel.style.display      = 'none';
+    btnUpgrade.style.display     = 'none';
+    btnResubscribe.style.display = 'none';
 
     if (!sub) {
       subContent.innerHTML = `
@@ -255,6 +276,9 @@
     let renewLine = '';
     if (sub.status === 'active' && sub.next_billing_date) {
       renewLine = `<div class="card-sub">Renews on ${fmt(sub.next_billing_date)}</div>`;
+      if (sub.plan === 'annual') {
+        renewLine += `<div class="card-sub" style="color:var(--text-dim);margin-top:4px;font-size:0.78rem;">To switch to monthly billing, cancel before renewal and resubscribe.</div>`;
+      }
     } else if (sub.status === 'cancelling' && sub.access_until) {
       renewLine = `<div class="card-sub" style="color:var(--amber);">Access until ${fmt(sub.access_until)} — will not renew</div>`;
     } else if (sub.status === 'cancelled') {
@@ -271,6 +295,8 @@
     if (hasAccess && sub.status === 'active') {
       btnCancel.style.display  = 'block';
       btnUpgrade.style.display = sub.plan === 'monthly' ? 'block' : 'none';
+    } else if (sub.status === 'cancelling' && hasAccess) {
+      btnResubscribe.style.display = 'block';
     }
   }
 
@@ -420,12 +446,42 @@
       }
     });
 
+    // Resubscribe (shown when status is cancelling but access still valid)
+    $('btnResubscribe').addEventListener('click', () => {
+      window.location.href = 'index.html#pricing';
+    });
+
     // Logout
     $('btnLogout').addEventListener('click', async () => {
       await sb.auth.signOut();
       window.location.href = 'index.html';
     });
   }
+
+  // Password reset — fires when user arrives via the email reset link
+  sb.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      $('resetOverlay').style.display = 'flex';
+    }
+  });
+
+  $('btnSetPw').addEventListener('click', async () => {
+    const pw      = $('newPwInput').value;
+    const confirm = $('confirmPwInput').value;
+    const msgEl   = $('resetPwMsg');
+    if (pw.length < 8) { msgEl.style.color = '#f87171'; msgEl.textContent = 'Password must be at least 8 characters.'; return; }
+    if (pw !== confirm) { msgEl.style.color = '#f87171'; msgEl.textContent = 'Passwords do not match.'; return; }
+    const btn = $('btnSetPw');
+    btn.disabled = true; btn.textContent = 'Updating…';
+    const { error } = await sb.auth.updateUser({ password: pw });
+    if (error) {
+      msgEl.style.color = '#f87171'; msgEl.textContent = error.message;
+      btn.disabled = false; btn.textContent = 'Update password';
+    } else {
+      msgEl.style.color = '#34d399'; msgEl.textContent = '✓ Password updated. Redirecting…';
+      setTimeout(() => { $('resetOverlay').style.display = 'none'; window.location.href = 'index.html'; }, 2000);
+    }
+  });
 
   init();
 })();

@@ -1789,6 +1789,11 @@
       mobileNav.classList.remove('open');
     });
   });
+  // Close mobile menu when the Log In / Sign Up button is clicked
+  document.getElementById('mobileLoginBtn').addEventListener('click', () => {
+    hamburger.classList.remove('open');
+    mobileNav.classList.remove('open');
+  });
 
   /* ── Road dashes (perspective) ── */
   const roadLines = document.getElementById('roadLines');
@@ -2044,13 +2049,28 @@
         <div class="auth-msg" id="authMsg"></div>
         <button type="submit" class="auth-btn-primary" id="authSubmit">Create account</button>
       </form>
+      <!-- Forgot password link — shown only on Log in tab -->
+      <div id="forgotLink" style="display:none;text-align:center;margin-top:10px;">
+        <button type="button" id="btnShowForgot" style="background:none;border:none;color:#64748b;font-size:0.8rem;cursor:pointer;text-decoration:underline;font-family:inherit;">Forgot password?</button>
+      </div>
+      <!-- Forgot password panel -->
+      <div id="forgotPanel" style="display:none;border-top:1px solid rgba(255,255,255,0.07);margin-top:14px;padding-top:16px;">
+        <p style="font-size:0.82rem;color:#94a3b8;margin-bottom:12px;">Enter your email and we'll send a reset link.</p>
+        <div class="auth-field" style="margin-bottom:10px;">
+          <label for="forgotEmail">Email address</label>
+          <input type="email" id="forgotEmail" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="auth-msg" id="forgotMsg"></div>
+        <button type="button" class="auth-btn-primary" id="btnSendReset">Send reset link</button>
+        <button type="button" class="auth-btn-outline" id="btnForgotBack" style="margin-top:8px;">← Back to log in</button>
+      </div>
     </div>
 
     <!-- View 2: Plan selection -->
     <div id="viewPlans" style="display:none;">
       <div class="auth-icon">✨</div>
       <div class="auth-title">Choose your plan</div>
-      <p class="auth-sub">Both plans include all Pro features. Cancel anytime.</p>
+      <p class="auth-sub" id="plansSubtitle">Both plans include all Pro features. Cancel anytime.</p>
 
       <div class="plan-cards">
         <div class="plan-card" id="planMonthly" onclick="selectPlan('monthly')">
@@ -2097,6 +2117,7 @@
       <p class="auth-sub" style="margin-bottom:18px;">We sent a confirmation link to <strong id="verifyEmailAddr"></strong>. Click it to activate your account, then come back here to subscribe.</p>
       <p style="font-size:0.82rem;color:var(--text-mid);margin-bottom:18px;">Can't find it? Check your spam folder. The link expires in 24 hours.</p>
       <button type="button" class="auth-btn-primary" style="width:100%;" onclick="document.getElementById('authBackdrop').classList.remove('open');document.body.style.overflow='';">Done</button>
+      <p style="font-size:0.78rem;color:#64748b;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.07);text-align:center;">Already have an account? <button type="button" id="btnSwitchToLogin" style="background:none;border:none;color:#f59e0b;font-weight:600;cursor:pointer;font-size:0.78rem;padding:0;font-family:inherit;">Switch to Log in →</button></p>
     </div>
 
     <!-- Hidden PayFast form — auto-submitted on payment -->
@@ -2150,6 +2171,11 @@
     $('authSubmit').textContent     = isSignup ? 'Create account' : 'Log in';
     $('authPassword').autocomplete  = isSignup ? 'new-password' : 'current-password';
     $('authMsg').textContent        = '';
+    // Show forgot password link only on login tab
+    $('forgotLink').style.display   = isSignup ? 'none' : '';
+    // Hide forgot panel when switching tabs
+    $('forgotPanel').style.display  = 'none';
+    $('authForm').style.display     = '';
   }
 
   $('tabSignup').addEventListener('click', () => setAuthTab('signup'));
@@ -2227,17 +2253,34 @@
     );
 
     if (hasAccess) {
-      // Already subscribed
+      // Already subscribed (active or cancelling with access remaining)
       let detail = `Plan: <strong>${planLabel(sub.plan)}</strong><br>`;
       if (sub.status === 'active' && sub.next_billing_date) {
         detail += `Renews: <strong>${formatDate(sub.next_billing_date)}</strong>`;
       } else if (sub.status === 'cancelling') {
         detail += `Access until: <strong>${formatDate(sub.access_until)}</strong> — will not renew`;
+        detail += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.78rem;color:#94a3b8;">
+          Want to resubscribe? <button type="button" id="btnResubscribeModal" style="background:none;border:none;color:#f59e0b;font-weight:700;cursor:pointer;font-size:0.78rem;padding:0;font-family:inherit;text-decoration:underline;">Choose a plan →</button>
+          <div style="margin-top:4px;color:#64748b;font-size:0.72rem;">New billing starts immediately. No credit for remaining days.</div>
+        </div>`;
       }
       $('subDetail').innerHTML = detail;
       showView('viewSubscribed');
+      // Wire resubscribe button if present
+      const resubBtn = document.getElementById('btnResubscribeModal');
+      if (resubBtn) {
+        resubBtn.addEventListener('click', () => {
+          highlightPlan(selectedPlan);
+          $('plansSubtitle').textContent = 'New billing starts today. No credit for remaining days.';
+          showView('viewPlans');
+        });
+      }
     } else {
-      // Not subscribed — show plan selection, highlight pre-selected plan
+      // Not subscribed or access expired — show plan selection
+      const isReturning = sub && (sub.status === 'cancelled' || sub.status === 'cancelling');
+      $('plansSubtitle').textContent = isReturning
+        ? 'Welcome back — choose a plan to reactivate Pro access.'
+        : 'Both plans include all Pro features. Cancel anytime.';
       highlightPlan(selectedPlan);
       showView('viewPlans');
     }
@@ -2352,7 +2395,47 @@
     updateNavAuth(session);
   });
 
-  // Expose globals (called from inline onclick attributes)
+  // ── Forgot password ──────────────────────────────────────────────────────────
+
+  $('btnShowForgot').addEventListener('click', () => {
+    $('authForm').style.display   = 'none';
+    $('forgotLink').style.display = 'none';
+    $('forgotPanel').style.display = '';
+    $('forgotEmail').value = $('authEmail').value; // pre-fill if already typed
+    setMsg('forgotMsg', '', false);
+  });
+
+  $('btnForgotBack').addEventListener('click', () => {
+    $('forgotPanel').style.display = 'none';
+    $('authForm').style.display   = '';
+    $('forgotLink').style.display  = '';
+  });
+
+  $('btnSendReset').addEventListener('click', async () => {
+    const email = $('forgotEmail').value.trim();
+    if (!email) { setMsg('forgotMsg', 'Please enter your email address.', true); return; }
+    const btn = $('btnSendReset');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://mywealthlens.com/account.html',
+    });
+    btn.disabled = false; btn.textContent = 'Send reset link';
+    if (error) {
+      setMsg('forgotMsg', error.message, true);
+    } else {
+      setMsg('forgotMsg', 'If that email is registered, a reset link is on its way. Check your inbox (and spam folder).', false);
+    }
+  });
+
+  // ── Switch-to-login from email verification view ──────────────────────────
+
+  $('btnSwitchToLogin').addEventListener('click', () => {
+    showView('viewAuth');
+    setAuthTab('login');
+  });
+
+  // ── Expose globals (called from inline onclick attributes) ────────────────
+
   window.openProModal = openProModal;
   window.selectPlan   = selectPlan;
 })();

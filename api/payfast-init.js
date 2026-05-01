@@ -35,6 +35,15 @@ async function getUser(accessToken) {
   return r.json();
 }
 
+async function getSubscription(userId) {
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${userId}&limit=1`,
+    { headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}` } }
+  );
+  const arr = await r.json();
+  return arr[0] || null;
+}
+
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', BASE_URL);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -55,6 +64,11 @@ async function handler(req, res) {
   const user = await getUser(access_token);
   if (!user || !user.id) {
     return res.status(401).json({ error: 'Unauthorised' });
+  }
+
+  const existingSub = await getSubscription(user.id);
+  if (existingSub && existingSub.status === 'active') {
+    return res.status(400).json({ error: 'You already have an active subscription. Visit your account page to manage it.' });
   }
 
   const amount    = plan === 'annual' ? '399.00' : '39.00';

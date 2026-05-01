@@ -169,8 +169,8 @@ async function handler(req, res) {
         const sub = await sbGet('subscriptions', `user_id=eq.${userId}`);
         if (sub) {
           await sbPatch('subscriptions', `user_id=eq.${userId}`, {
-            status:       'cancelled',
-            access_until: sub.next_billing_date || todayStr(),
+            status: 'cancelled',
+            // access_until preserved — grace period was set correctly at payment time
           });
         }
       }
