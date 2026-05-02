@@ -142,6 +142,7 @@
       color: var(--text-muted);
       cursor: pointer;
       transition: all 0.18s ease;
+      white-space: nowrap;
     }
     .mode-btn.active {
       background: var(--amber);
@@ -744,6 +745,7 @@
       color: var(--text-muted);
       font-size: 0.65rem;
       font-weight: 700;
+      font-style: italic;
       cursor: help;
       flex-shrink: 0;
       margin-left: 4px;
@@ -1249,9 +1251,9 @@
     <div class="card-title">Calculator</div>
 
     <div class="mode-toggle" role="group" aria-label="Calculator mode">
-      <button class="mode-btn" data-mode="goal" type="button">Goal Solver <span class="tip" data-tip="Set a target amount and auto-calculate the monthly contribution, initial capital, or growth rate needed to reach it." tabindex="-1">?</span></button>
-      <button class="mode-btn active" data-mode="projection" type="button">Projection <span class="tip" data-tip="Enter your contributions and growth rate to see your projected portfolio value at your target age." tabindex="-1">?</span></button>
-      <button class="mode-btn" data-mode="tfsa" type="button">TFSA <span class="tip" data-tip="Model your Tax Free Savings Account. Track annual (R46,000) and lifetime (R500,000) TFSA limits and see how much tax you save versus an equivalent taxed account." tabindex="-1">?</span></button>
+      <button class="mode-btn" data-mode="goal" type="button">Goal Solver <span class="tip" data-tip="Set a target amount and auto-calculate the monthly contribution, initial capital, or growth rate needed to reach it." tabindex="-1">i</span></button>
+      <button class="mode-btn active" data-mode="projection" type="button">Projection <span class="tip" data-tip="Enter your contributions and growth rate to see your projected portfolio value at your target age." tabindex="-1">i</span></button>
+      <button class="mode-btn" data-mode="tfsa" type="button">TFSA <span class="tip" data-tip="Model your Tax Free Savings Account. Track annual (R46,000) and lifetime (R500,000) TFSA limits and see how much tax you save versus an equivalent taxed account." tabindex="-1">i</span></button>
     </div>
 
     <div class="input-row">
