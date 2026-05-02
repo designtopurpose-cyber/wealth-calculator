@@ -132,17 +132,23 @@
       border: 1px solid var(--border);
     }
     .mode-btn {
-      flex: 1;
-      padding: 8px 12px;
+      flex: 1 1 0;
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 8px;
       border: none;
       background: none;
       border-radius: 6px;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       font-weight: 500;
       color: var(--text-muted);
       cursor: pointer;
       transition: all 0.18s ease;
       white-space: nowrap;
+      overflow: hidden;
     }
     .mode-btn.active {
       background: var(--amber);
@@ -266,7 +272,7 @@
     #targetAmount-row { display: none; }
     #app.goal-mode #targetAmount-row { display: grid; }
 
-    .mode-btn .tip { pointer-events: auto; }
+    .mode-btn .tip { pointer-events: auto; margin-left: 0; flex-shrink: 0; }
 
     /* Error message */
     .field-error {
