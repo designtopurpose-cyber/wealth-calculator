@@ -31,7 +31,7 @@
       --sans:        'Inter', system-ui, -apple-system, sans-serif;
     }
 
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; scroll-padding-top: 68px; }
     body {
       font-family: var(--sans);
       color: var(--text);
@@ -1023,7 +1023,7 @@
     /* ══════════════════════════════════════════
        PRICING
     ══════════════════════════════════════════ */
-    #pricing { background: var(--bg-2); scroll-margin-top: 68px; }
+    #pricing { background: var(--bg-2); }
     .pricing-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -2439,6 +2439,16 @@
   window.openProModal = openProModal;
   window.selectPlan   = selectPlan;
 })();
+</script>
+<script>
+// Re-scroll to hash after full load so font/image shifts don't land the scroll short
+window.addEventListener('load', function() {
+  if (!location.hash) return;
+  var el = document.querySelector(location.hash);
+  if (!el) return;
+  var top = el.getBoundingClientRect().top + window.scrollY - 68;
+  window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+});
 </script>
 </body>
 </html>
