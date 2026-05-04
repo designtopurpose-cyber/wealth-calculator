@@ -65,7 +65,6 @@ function pfApiSignature(timestamp) {
 
 function pfFormSignature(data) {
   const str = Object.keys(data)
-    .sort()
     .filter(k => data[k] !== '' && data[k] != null)
     .map(k => `${k}=${encodeURIComponent(String(data[k])).replace(/%20/g, '+')}`)
     .join('&');
@@ -133,7 +132,6 @@ async function handler(req, res) {
   const parts     = fullName.split(' ');
   const nameFirst = parts[0] || 'Pro';
   const nameLast  = parts.slice(1).join(' ') || 'User';
-  const today     = new Date().toISOString().slice(0, 10);
 
   const params = {
     merchant_id:       PF_MERCHANT_ID,
@@ -147,13 +145,11 @@ async function handler(req, res) {
     m_payment_id:      crypto.randomUUID(),
     amount:            '399.00',
     item_name:         'MyWealthLens Pro Annual',
-    subscription_type: '1',
-    billing_date:      today,
-    recurring_amount:  '399.00',
-    frequency:         '6',
-    cycles:            '0',
     custom_str1:       user.id,
     custom_str2:       'annual',
+    subscription_type: '1',
+    frequency:         '6',
+    cycles:            '0',
   };
 
   params.signature = pfFormSignature(params);

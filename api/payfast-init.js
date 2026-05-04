@@ -14,7 +14,6 @@ const PF_URL              = 'https://www.payfast.co.za/eng/process';
 
 function pfSignature(data) {
   const str = Object.keys(data)
-    .sort()
     .filter(k => data[k] !== '' && data[k] != null)
     .map(k => `${k}=${encodeURIComponent(String(data[k])).replace(/%20/g, '+')}`)
     .join('&');
@@ -74,7 +73,6 @@ async function handler(req, res) {
   const amount    = plan === 'annual' ? '399.00' : '39.00';
   const frequency = plan === 'annual' ? '6' : '3';
   const itemName  = plan === 'annual' ? 'MyWealthLens Pro Annual' : 'MyWealthLens Pro Monthly';
-  const today     = new Date().toISOString().slice(0, 10);
 
   const meta      = user.user_metadata || {};
   const fullName  = (meta.full_name || meta.name || '').trim();
@@ -86,7 +84,7 @@ async function handler(req, res) {
     merchant_id:       PF_MERCHANT_ID,
     merchant_key:      PF_MERCHANT_KEY,
     return_url:        `${BASE_URL}/account.html?welcome=1`,
-    cancel_url:        `${BASE_URL}/`,
+    cancel_url:        `${BASE_URL}/#pricing`,
     notify_url:        `${BASE_URL}/api/webhook`,
     name_first:        nameFirst,
     name_last:         nameLast,
@@ -94,13 +92,11 @@ async function handler(req, res) {
     m_payment_id:      crypto.randomUUID(),
     amount,
     item_name:         itemName,
-    subscription_type: '1',
-    billing_date:      today,
-    recurring_amount:  amount,
-    frequency,
-    cycles:            '0',
     custom_str1:       user.id,
     custom_str2:       plan,
+    subscription_type: '1',
+    frequency,
+    cycles:            '0',
   };
 
   params.signature = pfSignature(params);
