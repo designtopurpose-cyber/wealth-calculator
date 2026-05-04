@@ -101,6 +101,16 @@ async function handler(req, res) {
 
   params.signature = pfSignature(params);
 
+  // TEMP DIAGNOSTIC — remove once PayFast accepts signature
+  console.log('[payfast-init] signing input:',
+    Object.keys(params)
+      .filter(k => k !== 'signature' && params[k] !== '' && params[k] != null)
+      .map(k => `${k}=${encodeURIComponent(String(params[k])).replace(/%20/g, '+')}`)
+      .join('&')
+      + `&passphrase=[len-${(process.env.PF_PASSPHRASE || '').length}]`
+  );
+  console.log('[payfast-init] signature:', params.signature);
+
   return res.status(200).json({ pfUrl: PF_URL, params });
 }
 
