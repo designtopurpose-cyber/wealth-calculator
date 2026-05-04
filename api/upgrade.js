@@ -144,7 +144,7 @@ async function handler(req, res) {
     name_first:        nameFirst,
     name_last:         nameLast,
     email_address:     user.email,
-    m_payment_id:      user.id,
+    m_payment_id:      crypto.randomUUID(),
     amount:            '399.00',
     item_name:         'MyWealthLens Pro Annual',
     subscription_type: '1',
