@@ -73,7 +73,8 @@ All API calls that require authentication (payfast-init, cancel, upgrade) receiv
 
 ### Session management
 - `sb.auth.onAuthStateChange()` listens for sign-out / session expiry on the account page
-- Password changes are handled via `sb.auth.updateUser({ password })` on the client
+- Password changes (logged-in user) are handled via `sb.auth.updateUser({ password })` on the client
+- Password reset (forgot password) uses `sb.auth.resetPasswordForEmail(email, { redirectTo: '.../account.html' })`. Supabase sends the email; emails may land in spam due to default sender domain reputation. For better deliverability, configure custom SMTP in Supabase (e.g. via Resend) — not currently configured.
 
 ---
 
