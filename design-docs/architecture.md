@@ -274,6 +274,7 @@ graph TD
 - **Form POST signing uses insertion order, not alphabetical** — Despite some PayFast docs implying alphabetical sorting, the production endpoint validates against the order fields appear in the form. Our `pfSignature()` therefore relies on `Object.keys()` returning insertion order (guaranteed for string keys in modern JS).
 - **REST API signing uses alphabetical order** — A different scheme from form POST signing. Header keys (`merchant-id`, `passphrase`, `timestamp`, `version`) are sorted alphabetically.
 - **Per-request `m_payment_id`** — A fresh UUID per attempt avoids PayFast's duplicate-payment-id rejection on retries; user identity is preserved via `custom_str1`.
+- **Legal links on every page** — Privacy Policy and Terms of Use are reachable from a footer on every HTML page (`index.html`, `calculator.html`, `account.html`, `resources.html`, `privacy-policy.html`, `terms.html`). Marketing pages use a full sitemap footer; product and legal pages use a single-line `Home · Privacy Policy · Terms of Use · My Account` mini footer.
 - **Grace period** — `access_until` is set to `next_billing_date + 3 days` at payment time, giving users a buffer if PayFast is slow to process renewal
 - **Idempotent webhook** — The webhook uses upsert with `resolution=merge-duplicates`, so duplicate ITN notifications are safe
 - **Reminder deduplication** — `reminder_sent_at IS NULL` prevents duplicate renewal emails if the cron fires more than once on the same day
