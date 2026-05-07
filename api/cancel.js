@@ -3,13 +3,14 @@
 // Cancels the user's PayFast subscription and marks Supabase status as 'cancelling'.
 
 const crypto = require('crypto');
+const config = require('../config/region');
 
 const SUPABASE_URL        = 'https://thvdbfkhedoirdliemsd.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const PF_MERCHANT_ID      = process.env.PF_MERCHANT_ID  || '34599725';
 const PF_PASSPHRASE       = process.env.PF_PASSPHRASE   || '';
-const BASE_URL            = 'https://mywealthlens.com';
-const PF_API_BASE         = 'https://api.payfast.co.za';
+const BASE_URL            = config.baseUrl;
+const PF_API_BASE         = config.payfast.apiBase;
 
 // ── Supabase helpers ──────────────────────────────────────────────────────────
 

@@ -3,14 +3,15 @@
 // Returns: { pfUrl, params } — frontend submits these as a form to PayFast
 
 const crypto = require('crypto');
+const config = require('../config/region');
 
 const SUPABASE_URL        = 'https://thvdbfkhedoirdliemsd.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const PF_MERCHANT_ID      = process.env.PF_MERCHANT_ID  || '34599725';
 const PF_MERCHANT_KEY     = process.env.PF_MERCHANT_KEY || 'td3mihaxkox8x';
 const PF_PASSPHRASE       = process.env.PF_PASSPHRASE   || '';   // set in Vercel if you add one in PayFast settings
-const BASE_URL            = 'https://mywealthlens.com';
-const PF_URL              = 'https://www.payfast.co.za/eng/process';
+const BASE_URL            = config.baseUrl;
+const PF_URL              = config.payfast.formUrl;
 
 function pfSignature(data) {
   const str = Object.keys(data)
@@ -70,9 +71,10 @@ async function handler(req, res) {
     return res.status(400).json({ error: 'You already have an active subscription. Visit your account page to manage it.' });
   }
 
-  const amount    = plan === 'annual' ? '399.00' : '39.00';
-  const frequency = plan === 'annual' ? '6' : '3';
-  const itemName  = plan === 'annual' ? 'MyWealthLens Pro Annual' : 'MyWealthLens Pro Monthly';
+  const planCfg   = config.plans[plan];
+  const amount    = planCfg.amount;
+  const frequency = planCfg.frequency;
+  const itemName  = planCfg.itemName;
 
   const meta      = user.user_metadata || {};
   const fullName  = (meta.full_name || meta.name || '').trim();

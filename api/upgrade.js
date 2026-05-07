@@ -3,15 +3,16 @@
 // Cancels the user's monthly PayFast subscription and returns PayFast params for annual sign-up.
 
 const crypto = require('crypto');
+const config = require('../config/region');
 
 const SUPABASE_URL         = 'https://thvdbfkhedoirdliemsd.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const PF_MERCHANT_ID       = process.env.PF_MERCHANT_ID  || '34599725';
 const PF_MERCHANT_KEY      = process.env.PF_MERCHANT_KEY || 'td3mihaxkox8x';
 const PF_PASSPHRASE        = process.env.PF_PASSPHRASE   || '';
-const BASE_URL             = 'https://mywealthlens.com';
-const PF_URL               = 'https://www.payfast.co.za/eng/process';
-const PF_API_BASE          = 'https://api.payfast.co.za';
+const BASE_URL             = config.baseUrl;
+const PF_URL               = config.payfast.formUrl;
+const PF_API_BASE          = config.payfast.apiBase;
 
 // ── Supabase helpers ──────────────────────────────────────────────────────────
 
@@ -143,12 +144,12 @@ async function handler(req, res) {
     name_last:         nameLast,
     email_address:     user.email,
     m_payment_id:      crypto.randomUUID(),
-    amount:            '399.00',
-    item_name:         'MyWealthLens Pro Annual',
+    amount:            config.plans.annual.amount,
+    item_name:         config.plans.annual.itemName,
     custom_str1:       user.id,
     custom_str2:       'annual',
     subscription_type: '1',
-    frequency:         '6',
+    frequency:         config.plans.annual.frequency,
     cycles:            '0',
   };
 

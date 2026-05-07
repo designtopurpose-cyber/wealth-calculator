@@ -2,6 +2,7 @@
 // PayFast sends application/x-www-form-urlencoded; we disable Vercel's body parser.
 
 const crypto = require('crypto');
+const config = require('../config/region');
 
 const SUPABASE_URL        = 'https://thvdbfkhedoirdliemsd.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
@@ -57,7 +58,10 @@ function verifySignature(rawBody, signature, passphrase) {
 
 // ── Expected amounts per plan ─────────────────────────────────────────────────
 
-const PLAN_AMOUNTS = { monthly: 39.00, annual: 399.00 };
+const PLAN_AMOUNTS = {
+  monthly: parseFloat(config.plans.monthly.amount),
+  annual:  parseFloat(config.plans.annual.amount),
+};
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -141,6 +145,7 @@ async function handler(req, res) {
           payfast_subscription_token: token || existing.payfast_subscription_token,
           next_billing_date:          nextBilling,
           access_until:              accessUntil,
+          region:                    config.region,
         });
       } else if (userId) {
         await sbUpsert('subscriptions', {
@@ -150,6 +155,7 @@ async function handler(req, res) {
           payfast_subscription_token: token,
           next_billing_date:          nextBilling,
           access_until:              accessUntil,
+          region:                    config.region,
         });
       }
     } catch (err) {

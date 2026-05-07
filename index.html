@@ -2206,7 +2206,7 @@
       const name = $('authName').value.trim();
       const { error: e } = await sb.auth.signUp({
         email, password,
-        options: { data: { full_name: name } },
+        options: { data: { full_name: name, region: 'ZA' } },
       });
       error = e;
     } else {

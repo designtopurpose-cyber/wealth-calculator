@@ -267,6 +267,49 @@ graph TD
 
 ---
 
+## Future Expansion — US market (planned)
+
+The current build is **South Africa–specific by design** but is intended to be cloned for the US market once SA traction is proven. This section flags every SA assumption to make the US build a guided diff rather than archaeology.
+
+### SA-specific assumptions baked into the current code
+
+| Layer | SA-specific value | Where | Notes for US build |
+|---|---|---|---|
+| Currency | ZAR (R) | `payfast-init.js`, `upgrade.js`, all UI copy | USD ($) for US |
+| Plan pricing | R39 / R399 | `payfast-init.js`, `upgrade.js`, `webhook.js` (PLAN_AMOUNTS) | Set US pricing in the same constants |
+| Payment gateway | PayFast (SA-only, ZAR-only) | `api/*.js` | **Stripe is the obvious US choice** — recurring billing, USD, well-documented Node SDK |
+| Tax rules | SA tax brackets, TFSA, RA contributions | Calculator logic in `calculator.html` | US has 401(k), Roth IRA, Traditional IRA, federal/state brackets — needs a separate tax module |
+| Domain | `mywealthlens.com` | `BASE_URL` constant in API functions | Likely `mywealthlens.com` for US, `mywealthlens.co.za` for SA — see "Domain split" below |
+| Email sender | `noreply@mywealthlens.com` | `renewal-reminder.js` | Same domain or US-specific subdomain |
+| Language | English (SA spelling) | All HTML | English (US spelling) for US |
+| Marketing copy | SA-specific examples, references | Landing page, resources | Rewrite for US audience |
+
+### Domain split — `.co.za` for SA, `.com` for US
+
+**The hard constraint:** existing PayFast subscriptions have `notify_url`, `return_url`, `cancel_url` baked in at signup time and cannot be retroactively changed. SA subscribers' ITNs will continue hitting whatever URL they signed up with for the life of the subscription.
+
+**Recommended approach:**
+- Keep both `mywealthlens.com` and `mywealthlens.co.za` pointing at the same Vercel project during the transition (12+ months minimum)
+- Code detects region via `window.location.hostname` (frontend) and request `host` header (backend)
+- Eventually split into two Vercel projects only when zero legacy SA subs remain on `.com`
+
+### Region awareness — recommended pre-US changes
+
+Cheap to do now, expensive to retrofit later:
+
+1. **Config object** — Extract currency, plan amounts, item names, payment gateway, base URL into a single `config/region.js` (or similar). The US clone becomes a one-file diff.
+2. **`region` column on `subscriptions` table** — `'ZA' | 'US'`, default `'ZA'`. Allows future cron/queries to filter by region.
+3. **`region` on Supabase user metadata** at signup — set from the hostname or a region selector.
+4. **Calculator tax module** — Swap SA tax rules into a module exporting a tax-calculation function; US version implements the same interface with US rules.
+5. **Payment gateway abstraction** — Both PayFast and Stripe expose roughly the same lifecycle (init → form / checkout → webhook → cancel). A thin abstraction (`getPaymentProvider(region)`) lets `api/payfast-init.js` become `api/checkout-init.js` that dispatches by region.
+6. **Region toggle UI** — Optional. A header switcher (`SA ↔ US`) that sets a localStorage flag and re-renders pricing/currency/copy. Useful for users who happen to land on the wrong domain.
+
+### Status
+
+None of the above expansion-readiness items are implemented yet. The current code assumes single-region SA. Doing them piecemeal as the SA build stabilises is fine; the US clone gets faster and cleaner with each one done.
+
+---
+
 ## Key Design Decisions
 
 - **No backend framework** — Vercel's native Node.js serverless runtime is used directly, keeping cold-start times low and dependencies at zero

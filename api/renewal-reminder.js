@@ -1,6 +1,8 @@
 // GET /api/renewal-reminder  — called daily by Vercel Cron at 06:00 UTC (08:00 SAST)
 // Finds annual subscribers whose next_billing_date is 21 days away and sends a reminder email.
 
+const config = require('../config/region');
+
 const SUPABASE_URL        = 'https://thvdbfkhedoirdliemsd.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const RESEND_API_KEY      = process.env.RESEND_API_KEY || 're_7wiMBPfY_9Lxy2WKaMQZ2Fu7qG81m3vxr';
@@ -22,7 +24,7 @@ function addDays(n) {
 
 function formatDate(dateStr) {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
+  return d.toLocaleDateString(config.dateLocale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 async function getEligibleSubscribers() {
@@ -30,6 +32,7 @@ async function getEligibleSubscribers() {
   const url = `${SUPABASE_URL}/rest/v1/subscriptions`
     + `?plan=eq.annual`
     + `&status=eq.active`
+    + `&region=eq.${config.region}`
     + `&next_billing_date=eq.${targetDate}`
     + `&reminder_sent_at=is.null`   // hasn't been sent yet
     + `&select=id,user_id,next_billing_date`;
@@ -54,6 +57,7 @@ async function getUserEmail(userId) {
 
 async function sendReminderEmail(email, renewalDate) {
   const formatted = formatDate(renewalDate);
+  const priceLabel = `${config.currencySign}${config.plans.annual.amount.replace(/\.00$/, '')}`;
   const r = await fetch('https://api.resend.com/emails', {
     method:  'POST',
     headers: {
@@ -61,7 +65,7 @@ async function sendReminderEmail(email, renewalDate) {
       'Content-Type':  'application/json',
     },
     body: JSON.stringify({
-      from:    'MyWealthLens <noreply@mywealthlens.com>',
+      from:    config.emailFrom,
       to:      [email],
       subject: `Your MyWealthLens Pro annual subscription renews on ${formatted}`,
       html: `
@@ -72,13 +76,13 @@ async function sendReminderEmail(email, renewalDate) {
           <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:16px;">Your annual subscription renews in 3 weeks</h2>
           <p style="color:#475569;line-height:1.7;">
             Your MyWealthLens Pro annual subscription will automatically renew on
-            <strong>${formatted}</strong> for <strong>R399</strong>.
+            <strong>${formatted}</strong> for <strong>${priceLabel}</strong>.
           </p>
           <p style="color:#475569;line-height:1.7;margin-top:12px;">
             If you'd like to cancel before that date, you can do so at any time from your account settings.
           </p>
           <div style="margin:28px 0;">
-            <a href="https://mywealthlens.com/account.html"
+            <a href="${config.baseUrl}/account.html"
                style="display:inline-block;background:#f59e0b;color:#0a0a0a;font-weight:700;
                       padding:12px 24px;border-radius:8px;text-decoration:none;">
               Manage My Account
@@ -90,13 +94,13 @@ async function sendReminderEmail(email, renewalDate) {
           </p>
           <p style="color:#94a3b8;font-size:0.85rem;margin-top:32px;border-top:1px solid #e2e8f0;padding-top:20px;">
             Thank you for using MyWealthLens.<br>
-            <a href="https://mywealthlens.com/account.html" style="color:#94a3b8;">Manage subscription</a>
+            <a href="${config.baseUrl}/account.html" style="color:#94a3b8;">Manage subscription</a>
             &nbsp;·&nbsp;
-            <a href="https://mywealthlens.com/privacy-policy.html" style="color:#94a3b8;">Privacy Policy</a>
+            <a href="${config.baseUrl}/privacy-policy.html" style="color:#94a3b8;">Privacy Policy</a>
           </p>
         </div>
       `,
-      text: `Your MyWealthLens Pro annual subscription renews on ${formatted} for R399.\n\nIf you'd like to cancel, visit: https://mywealthlens.com/account.html\n\nIf you do nothing, your subscription will renew automatically.\n\nThank you for using MyWealthLens.`,
+      text: `Your MyWealthLens Pro annual subscription renews on ${formatted} for ${priceLabel}.\n\nIf you'd like to cancel, visit: ${config.baseUrl}/account.html\n\nIf you do nothing, your subscription will renew automatically.\n\nThank you for using MyWealthLens.`,
     }),
   });
   return r.ok;
