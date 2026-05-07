@@ -22,6 +22,7 @@ MyWealthLens is a South African personal finance and wealth-calculator web appli
 | **Email** | Resend | Transactional email via `noreply@mywealthlens.com` |
 | **Hosting / CDN** | Vercel | Static files + serverless functions + cron scheduler |
 | **Supabase JS SDK** | `@supabase/supabase-js v2` | Loaded from jsDelivr CDN on every page |
+| **Favicon** | Inline SVG data URI (📈 emoji) | Set via `<link rel="icon" href='data:image/svg+xml,...'>` on every HTML page; no file shipped, renders crisp at any size |
 
 ---
 
