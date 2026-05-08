@@ -293,20 +293,20 @@ The current build is **South Africa–specific by design** but is intended to be
 - Code detects region via `window.location.hostname` (frontend) and request `host` header (backend)
 - Eventually split into two Vercel projects only when zero legacy SA subs remain on `.com`
 
-### Region awareness — recommended pre-US changes
+### Region awareness — pre-US changes
 
 Cheap to do now, expensive to retrofit later:
 
-1. **Config object** — Extract currency, plan amounts, item names, payment gateway, base URL into a single `config/region.js` (or similar). The US clone becomes a one-file diff.
-2. **`region` column on `subscriptions` table** — `'ZA' | 'US'`, default `'ZA'`. Allows future cron/queries to filter by region.
-3. **`region` on Supabase user metadata** at signup — set from the hostname or a region selector.
-4. **Calculator tax module** — Swap SA tax rules into a module exporting a tax-calculation function; US version implements the same interface with US rules.
-5. **Payment gateway abstraction** — Both PayFast and Stripe expose roughly the same lifecycle (init → form / checkout → webhook → cancel). A thin abstraction (`getPaymentProvider(region)`) lets `api/payfast-init.js` become `api/checkout-init.js` that dispatches by region.
-6. **Region toggle UI** — Optional. A header switcher (`SA ↔ US`) that sets a localStorage flag and re-renders pricing/currency/copy. Useful for users who happen to land on the wrong domain.
+1. ✅ **Config object** — `config/region.js` exports the ZA region object (currency, plans, payment gateway, base URL, payfast URLs, email sender, date locale). All five `api/*.js` files import it instead of hardcoding constants. Shipped 2026-05-07.
+2. ✅ **`region` column on `subscriptions` table** — `TEXT NOT NULL DEFAULT 'ZA'`. Webhook writes `region: config.region` on every row insert/update. Renewal-reminder cron filters by `region`. Shipped 2026-05-07.
+3. ✅ **`region` on Supabase user metadata at signup** — `index.html` signup call passes `region: 'ZA'` in `options.data`. Verified in Auth → Users dashboard. Shipped 2026-05-07.
+4. ⏸️ **Calculator tax module** — Deferred. SA tax logic still lives inline in `calculator.html`. When US tax rules are next in queue, extract into a swappable module; US version implements the same interface.
+5. ⏸️ **Payment gateway abstraction** — Deferred. Premature without a 2nd implementation. When Stripe is added, introduce a thin dispatcher (`getPaymentProvider(region)`) so `api/checkout-init.js` (or similar) routes by region.
+6. ⏸️ **Region toggle UI** — Optional. A header switcher (`SA ↔ US`) that sets a localStorage flag and re-renders pricing/currency/copy. Useful for users who land on the wrong domain.
 
 ### Status
 
-None of the above expansion-readiness items are implemented yet. The current code assumes single-region SA. Doing them piecemeal as the SA build stabilises is fine; the US clone gets faster and cleaner with each one done.
+Items 1–3 (foundation: config, region column, region in user metadata) shipped 2026-05-07 and verified end-to-end. The architecture is now region-aware at the data and config layers; what remains is the per-region behaviour (tax module, gateway dispatch) and UI affordances, which are best done when the US build is actually next in queue.
 
 ---
 
