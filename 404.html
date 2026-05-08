@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page not found — MyWealthLens</title>
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📈</text></svg>' />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --amber: #f59e0b; --bg: #080b12; --bg-card: #111827;
+      --line: rgba(255,255,255,0.07); --text: #f1f5f9;
+      --text-mid: #94a3b8; --white: #ffffff;
+      --sans: 'Inter', system-ui, sans-serif; --serif: 'Playfair Display', Georgia, serif;
+    }
+    body { font-family: var(--sans); color: var(--text); background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
+    .nav {
+      height: 64px; display: flex; align-items: center; padding: 0 5%;
+      border-bottom: 1px solid var(--line); justify-content: space-between;
+      background: rgba(8,11,18,0.95);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-icon { width: 32px; height: 32px; background: var(--amber); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .nav-logo-text { font-family: var(--serif); font-size: 1.1rem; font-weight: 700; color: var(--white); }
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+    .card { max-width: 480px; text-align: center; }
+    .code { font-family: var(--serif); font-size: 5rem; font-weight: 800; color: var(--amber); line-height: 1; margin-bottom: 16px; }
+    h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 700; color: var(--white); margin-bottom: 12px; }
+    p { color: var(--text-mid); margin-bottom: 28px; line-height: 1.6; }
+    .btn { display: inline-block; background: var(--amber); color: #0a0a0a; font-weight: 700; padding: 12px 28px; border-radius: 10px; text-decoration: none; transition: opacity 0.15s; }
+    .btn:hover { opacity: 0.9; }
+    .links { margin-top: 32px; font-size: 0.85rem; color: var(--text-mid); }
+    .links a { color: var(--amber); text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
+    footer { text-align: center; padding: 24px 16px; font-size: 0.8rem; color: var(--text-mid); border-top: 1px solid var(--line); }
+    footer a { color: var(--amber); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-icon">📈</div>
+    <span class="nav-logo-text">MyWealthLens</span>
+  </a>
+</nav>
+
+<main>
+  <div class="card">
+    <div class="code">404</div>
+    <h1>Page not found</h1>
+    <p>The page you're looking for doesn't exist or may have moved. Let's get you back on track.</p>
+    <a href="/" class="btn">Back to home</a>
+    <div class="links">
+      Or jump to: <a href="/calculator">Calculator</a> · <a href="/resources">Resources</a> · <a href="/account">My Account</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="/">Home</a> · <a href="/privacy-policy">Privacy Policy</a> · <a href="/terms">Terms of Use</a>
+</footer>
+
+</body>
+</html>
