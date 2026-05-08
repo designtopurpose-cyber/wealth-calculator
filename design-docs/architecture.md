@@ -20,7 +20,8 @@ MyWealthLens is a South African personal finance and wealth-calculator web appli
 | **Database** | Supabase PostgreSQL | `subscriptions` table via REST API |
 | **Payments** | PayFast | South African recurring billing gateway |
 | **Email** | Resend | Transactional email via `noreply@mywealthlens.com` |
-| **Hosting / CDN** | Vercel | Static files + serverless functions + cron scheduler |
+| **Hosting / CDN** | Vercel | Static files + serverless functions + cron scheduler. Both `mywealthlens.com` and `mywealthlens.co.za` aliased to the same project. |
+| **DNS** | Cloudflare (DNS only / grey cloud) | Both apex domains use CNAME flattening to `cname.vercel-dns.com`. Domain registered at Domains.co.za; Cloudflare nameservers `brett.ns.cloudflare.com` / `val.ns.cloudflare.com`. |
 | **Supabase JS SDK** | `@supabase/supabase-js v2` | Loaded from jsDelivr CDN on every page |
 | **Favicon** | Inline SVG data URI (📈 emoji) | Set via `<link rel="icon" href='data:image/svg+xml,...'>` on every HTML page; no file shipped, renders crisp at any size |
 
@@ -286,12 +287,18 @@ The current build is **South Africa–specific by design** but is intended to be
 
 ### Domain split — `.co.za` for SA, `.com` for US
 
-**The hard constraint:** existing PayFast subscriptions have `notify_url`, `return_url`, `cancel_url` baked in at signup time and cannot be retroactively changed. SA subscribers' ITNs will continue hitting whatever URL they signed up with for the life of the subscription.
+**Status:** `mywealthlens.co.za` is registered (Domains.co.za) and live as of 2026-05-08, aliased to the same Vercel project as `mywealthlens.com`. DNS managed by Cloudflare (DNS only mode). SSL auto-issued by Vercel.
 
-**Recommended approach:**
-- Keep both `mywealthlens.com` and `mywealthlens.co.za` pointing at the same Vercel project during the transition (12+ months minimum)
-- Code detects region via `window.location.hostname` (frontend) and request `host` header (backend)
-- Eventually split into two Vercel projects only when zero legacy SA subs remain on `.com`
+**The hard constraint:** PayFast subscriptions have `notify_url`, `return_url`, `cancel_url` baked in at signup time and cannot be retroactively changed. Subscribers' ITNs will continue hitting whatever URL they signed up with for the life of the subscription. (Currently moot — all existing subs are test data, confirmed 2026-05-07.)
+
+**Current setup:**
+- Both `mywealthlens.com` and `mywealthlens.co.za` alias to the same Vercel project
+- The codebase still treats SA as the only region; hostname-based config swap is not yet implemented (will land when `US` config is added to `config/region.js`)
+- Cloudflare is on grey-cloud (DNS only) for both; can flip to orange-cloud Proxied later if Cloudflare CDN/WAF benefits become useful (requires SSL/TLS mode "Full (strict)")
+
+**Future:**
+- When the US build starts, `config/region.js` gets a `US` object and a region-detection function based on `req.headers.host` / `window.location.hostname`
+- Eventually split into two Vercel projects only when zero legacy SA subs remain on `.com` (not relevant yet)
 
 ### Region awareness — pre-US changes
 
