@@ -32,7 +32,7 @@ MyWealthLens is a South African personal finance and wealth-calculator web appli
 ```
 wealth-calculator/
 ├── index.html              # Landing page + sign-up / sign-in modals + payment initiation
-├── calculator.html         # Core wealth calculator (gated to Pro subscribers)
+├── calculator.html         # Wealth calculator. Free modes: Goal Solver, Projection, TFSA. Pro modes (R39/m): Forecast After Target, Inflation-Adjusted Projections, 3-Scenario Comparison, Tax Analysis, Export to PDF.
 ├── account.html            # Subscription management (cancel, upgrade, password change)
 ├── resources.html          # Educational resources
 ├── privacy-policy.html

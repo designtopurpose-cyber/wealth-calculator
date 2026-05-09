@@ -1,0 +1,21 @@
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local environment
+.env
+.env.local
+.env.*.local
+
+# Claude Code session-local state
+.claude/worktrees/
+.claude/settings.local.json
+
+# Anything ending in .local.json (defensive — local override files)
+*.local.json

@@ -6,9 +6,16 @@
 
 ## 1. Brand snapshot
 
-**MyWealthLens** is a South African personal finance and wealth-calculator web app at [mywealthlens.co.za](https://mywealthlens.co.za) (also `.com`). It helps South Africans answer the financial questions they actually have — "How much do I need to retire?", "What return rate do I need to hit my goal?", "Am I saving enough?" — using a fast, focused, SA-specific calculator and free educational resources. Pro tier costs R39/month or R399/year.
+**MyWealthLens** is a South African personal finance and wealth-calculator web app at [mywealthlens.co.za](https://mywealthlens.co.za) (also `.com`). It helps South Africans answer the financial questions they actually have — "How much do I need to retire?", "What return rate do I need to hit my goal?", "Am I saving enough?" — using a fast, focused, SA-specific calculator and free educational resources.
 
-The product is built around the **Goal Solver**: instead of telling you only what your money will grow to, it solves for whichever variable you actually care about — initial capital, monthly contribution, or annual return — while you adjust the other two in real time.
+The product is built around the **Goal Solver**: instead of telling you only what your money will grow to, you pick the variable you want answered — initial capital, monthly contribution, or annual return — adjust the other two, and the calculator solves for your chosen variable in real time.
+
+### Free vs Pro
+
+| Tier | What you get |
+|---|---|
+| **Free** (sign-up required) | Goal Solver, Projection, and TFSA modes; full summary statistics |
+| **Pro** (R39/month or R399/year) | Adds: Forecast After Target (retirement income drawdown), Inflation-Adjusted Projections, 3-Scenario Comparison, Tax Analysis (CGT + dividends withholding), Export to PDF |
 
 ---
 
@@ -306,10 +313,10 @@ Best window for SA finance content: **07:00–09:00 SAST** (commute) and **20:00
 > The South African wealth calculator built for the questions you actually have. Stop guessing — start solving.
 
 ### Short blurb (50 words)
-> MyWealthLens is a South African wealth calculator built to answer the questions actually being asked: "Am I on track?", "What return do I need?", "How much should I save?". The Goal Solver lets you fix two variables and solve for the third in real time.
+> MyWealthLens is a South African wealth calculator built to answer the questions actually being asked: "Am I on track?", "What return do I need?", "How much should I save?". The Goal Solver lets you fix two variables and solve for the third in real time. Pro access is R39/month.
 
 ### Medium blurb (150 words)
-> MyWealthLens is a wealth calculator built specifically for South African personal finance. Unlike generic compound-interest tools that only project future value, MyWealthLens lets you solve for whichever variable you actually want to know — your initial capital, monthly contribution, or required annual return — while adjusting the other two in real time. The result is a tool that answers "What return do I need to hit R5m by 65?" or "How much must I save monthly to retire on R30k?" in seconds, with full SA tax and inflation logic baked in. Free version includes core calculator access; Pro (R39/month or R399/year) adds advanced scenario modelling, sensitivity analysis, and a full set of SA-specific scenarios (TFSA, RA, two-pot retirement). Built by South Africans, for South Africans, by people who got tired of doing this on a napkin.
+> MyWealthLens is a wealth calculator built specifically for South African personal finance. Unlike generic compound-interest tools that only project future value, MyWealthLens lets you pick the variable you want answered — initial capital, monthly contribution, or annual return — adjust the other two, and watch the calculator solve for your chosen variable in real time. Free access includes the Goal Solver, Projection, and TFSA modes. Pro (R39/month or R399/year) unlocks retirement-income drawdown planning, inflation-adjusted projections, three-scenario comparison, tax analysis covering CGT and dividends withholding, and PDF export. Built by a South African, for South Africans, who got tired of doing this on a napkin.
 
 ### Long blurb (300 words)
 [Use the Medium blurb + add the founder-voice "Why I built this" angle covering: frustration with one-direction calculators, the value of solving the inverse problem, the specific SA-context features, and the explicit decision to keep it cheap and ad-free.]
