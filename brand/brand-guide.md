@@ -353,7 +353,7 @@ Three templates the AI agent can adapt with concrete numbers/scenarios.
 >
 > Want a different ending? Change the inputs.
 >
-> The Goal Solver works backwards: pick what you want answered, fix the other two, see the answer in real time.
+> The Goal Solver works backwards: pick what you want answered, adjust the other two, see the answer in real time.
 >
 > Free at mywealthlens.co.za 📈
 >
