@@ -13,9 +13,19 @@
 (function () {
   'use strict';
 
-  var META_PIXEL_ID = '1515869336805703';
-  var GOOGLE_ADS_ID = 'AW-18154488811';
-  var STORAGE_KEY   = 'mwl_consent';
+  var META_PIXEL_ID              = '1515869336805703';
+  var GOOGLE_ADS_ID              = 'AW-18154488811';
+  var CLOUDFLARE_ANALYTICS_TOKEN = '7184d11a8b794c02a6eb6356e4564247';
+  var STORAGE_KEY                = 'mwl_consent';
+
+  // Cloudflare Web Analytics — cookieless, no PII, no consent required
+  function loadCloudflareAnalytics() {
+    var s = document.createElement('script');
+    s.defer = true;
+    s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    s.setAttribute('data-cf-beacon', '{"token":"' + CLOUDFLARE_ANALYTICS_TOKEN + '"}');
+    document.head.appendChild(s);
+  }
 
   function loadPixels() {
     // Meta Pixel
@@ -80,6 +90,10 @@
   };
 
   function init() {
+    // Cookieless analytics — loads regardless of consent
+    loadCloudflareAnalytics();
+
+    // Advertising trackers — consent-gated
     var consent;
     try { consent = localStorage.getItem(STORAGE_KEY); } catch (e) { consent = null; }
 
@@ -92,7 +106,7 @@
         showBanner();
       }
     }
-    // 'declined' → load nothing
+    // 'declined' → load nothing further
   }
 
   init();

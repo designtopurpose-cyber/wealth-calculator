@@ -290,8 +290,8 @@ These map to Meta `Lead`, `InitiateCheckout`, and `Subscribe` standard events fo
 ## Open items / not-yet-decided
 
 - Welcome email design + copy (Section 3.1 Day 0) — to draft when Phase 4 ships
-- POPIA Privacy Policy update — confirm whether existing privacy-policy.html covers retargeting pixels (likely needs an addition)
-- Cookie consent banner — needed once Meta Pixel and Google Ads tag are live, since they set cookies. Cloudflare Web Analytics does NOT need consent (no cookies)
+- ✅ POPIA Privacy Policy update — shipped 2026-05-11; privacy-policy.html discloses Meta Pixel, Google Ads, Cloudflare Web Analytics, and explains opt-out
+- ✅ Cookie consent banner — shipped 2026-05-11; `consent.js` shows banner on first visit, loads pixels only after Accept, withdrawable via privacy-policy.html link
 
 ---
 

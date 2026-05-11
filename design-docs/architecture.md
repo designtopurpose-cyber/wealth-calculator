@@ -24,6 +24,8 @@ MyWealthLens is a South African personal finance and wealth-calculator web appli
 | **DNS** | Cloudflare (DNS only / grey cloud) | Both apex domains use CNAME flattening to `cname.vercel-dns.com`. Domain registered at Domains.co.za; Cloudflare nameservers `brett.ns.cloudflare.com` / `val.ns.cloudflare.com`. |
 | **Supabase JS SDK** | `@supabase/supabase-js v2` | Loaded from jsDelivr CDN on every page |
 | **Favicon** | Inline SVG data URI (📈 emoji) | Set via `<link rel="icon" href='data:image/svg+xml,...'>` on every HTML page; no file shipped, renders crisp at any size |
+| **Analytics/Advertising** | Meta Pixel + Google Ads gtag | Conditionally loaded via `consent.js` — only fire after user accepts the cookie consent banner. POPIA/GDPR compliant. Cloudflare Web Analytics runs cookieless and loads unconditionally. |
+| **Cookie consent** | Inline banner via `consent.js` | Shows on first visit; stores choice in localStorage. Withdrawable via privacy-policy.html link. No advertising cookies set before consent. |
 
 ---
 
