@@ -313,7 +313,7 @@ Best window for SA finance content: **07:00–09:00 SAST** (commute) and **20:00
 > The South African wealth calculator built for the questions you actually have. Stop guessing — start solving.
 
 ### Short blurb (50 words)
-> MyWealthLens is a South African wealth calculator built to answer the questions actually being asked: "Am I on track?", "What return do I need?", "How much should I save?". The Goal Solver lets you fix two variables and solve for the third in real time. Pro access is R39/month.
+> MyWealthLens is a South African wealth calculator that answers "Am I on track?" and "What return do I need?". Pick the variable you want answered — initial capital, monthly contribution, or annual return — adjust the other two, and the calculator solves it in real time. Pro is R39/month.
 
 ### Medium blurb (150 words)
 > MyWealthLens is a wealth calculator built specifically for South African personal finance. Unlike generic compound-interest tools that only project future value, MyWealthLens lets you pick the variable you want answered — initial capital, monthly contribution, or annual return — adjust the other two, and watch the calculator solve for your chosen variable in real time. Free access includes the Goal Solver, Projection, and TFSA modes. Pro (R39/month or R399/year) unlocks retirement-income drawdown planning, inflation-adjusted projections, three-scenario comparison, tax analysis covering CGT and dividends withholding, and PDF export. Built by a South African, for South Africans, who got tired of doing this on a napkin.
