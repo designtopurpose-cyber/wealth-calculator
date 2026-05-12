@@ -1,6 +1,10 @@
 // POST /api/payfast-init
-// Body: { plan: 'monthly' | 'annual', access_token: string }
-// Returns: { pfUrl, params } — frontend submits these as a form to PayFast
+// Body: { plan: 'monthly' | 'annual', access_token: string, promo?: string }
+// Returns: { pfUrl, params, promoApplied? } — frontend submits these as a form to PayFast
+//
+// Promo support: FIRSTMONTH19 (monthly plan only) sets amount=19, recurring_amount=39.
+// Single-use per email via promo_redemptions table. Redemption is recorded in webhook.js
+// after COMPLETE ITN, not here, so abandoned signups don't burn the promo.
 
 const crypto = require('crypto');
 const config = require('../config/region');
@@ -44,6 +48,30 @@ async function getSubscription(userId) {
   return arr[0] || null;
 }
 
+// Valid promo codes — extend as new promos ship. Each has {plan: 'monthly'|'annual'|null, firstAmount: string}.
+const PROMOS = {
+  FIRSTMONTH19: { plan: 'monthly', firstAmount: '19.00' },
+};
+
+async function hasRedeemedPromo(code, email) {
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/promo_redemptions?code=eq.${encodeURIComponent(code)}&email=eq.${encodeURIComponent(email.toLowerCase())}&select=id&limit=1`,
+    { headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}` } }
+  );
+  if (!r.ok) return false;
+  const arr = await r.json();
+  return Array.isArray(arr) && arr.length > 0;
+}
+
+async function validatePromo(code, plan, email) {
+  if (!code) return null;
+  const promo = PROMOS[code];
+  if (!promo) return null;
+  if (promo.plan && promo.plan !== plan) return null; // plan restriction
+  if (await hasRedeemedPromo(code, email)) return null;
+  return promo;
+}
+
 async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', BASE_URL);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -53,7 +81,7 @@ async function handler(req, res) {
   if (method === 'OPTIONS') return res.status(200).end();
   if (method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { plan, access_token } = req.body || {};
+  const { plan, access_token, promo: promoCode } = req.body || {};
   if (!['monthly', 'annual'].includes(plan)) {
     return res.status(400).json({ error: 'Invalid plan' });
   }
@@ -72,9 +100,14 @@ async function handler(req, res) {
   }
 
   const planCfg   = config.plans[plan];
-  const amount    = planCfg.amount;
+  const fullPrice = planCfg.amount;
   const frequency = planCfg.frequency;
-  const itemName  = planCfg.itemName;
+
+  // Promo validation. Silently ignored if invalid / ineligible / already redeemed.
+  const promo = promoCode ? await validatePromo(promoCode, plan, user.email) : null;
+  const promoApplied = promo ? promoCode : null;
+  const firstAmount  = promo ? promo.firstAmount : fullPrice;
+  const itemName     = promo ? `${planCfg.itemName} (${promoCode})` : planCfg.itemName;
 
   const meta      = user.user_metadata || {};
   const fullName  = (meta.full_name || meta.name || '').trim();
@@ -92,7 +125,7 @@ async function handler(req, res) {
     name_last:         nameLast,
     email_address:     user.email,
     m_payment_id:      crypto.randomUUID(),
-    amount,
+    amount:            firstAmount,
     item_name:         itemName,
     custom_str1:       user.id,
     custom_str2:       plan,
@@ -101,9 +134,16 @@ async function handler(req, res) {
     cycles:            '0',
   };
 
+  // When a promo is applied, second-and-onward billing uses recurring_amount (full price).
+  // custom_str3 carries the promo code through to the webhook for redemption tracking.
+  if (promo) {
+    params.recurring_amount = fullPrice;
+    params.custom_str3      = promoApplied;
+  }
+
   params.signature = pfSignature(params);
 
-  return res.status(200).json({ pfUrl: PF_URL, params });
+  return res.status(200).json({ pfUrl: PF_URL, params, promoApplied });
 }
 
 module.exports = handler;

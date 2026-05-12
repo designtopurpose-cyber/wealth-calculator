@@ -99,7 +99,7 @@ async function handler(req, res) {
   const rawBody = Buffer.concat(chunks).toString('utf8');
   const data    = Object.fromEntries(new URLSearchParams(rawBody));
 
-  const { payment_status, token, custom_str1: userId, custom_str2: plan, amount_gross } = data;
+  const { payment_status, token, custom_str1: userId, custom_str2: plan, custom_str3: promoCode, amount_gross, email_address: payerEmail } = data;
 
   // 1. Log signature check (informational only)
   if (!verifySignature(rawBody, data.signature, PF_PASSPHRASE || null)) {
@@ -157,6 +157,19 @@ async function handler(req, res) {
           access_until:              accessUntil,
           region:                    config.region,
         });
+      }
+
+      // Record promo redemption (only after payment confirmed COMPLETE)
+      if (promoCode && payerEmail) {
+        try {
+          await sbUpsert('promo_redemptions', {
+            code:    promoCode,
+            user_id: userId || null,
+            email:   payerEmail.toLowerCase(),
+          });
+        } catch (err) {
+          console.error('promo_redemptions insert failed:', err);
+        }
       }
     } catch (err) {
       console.error('Supabase write failed (COMPLETE):', err);

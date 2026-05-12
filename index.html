@@ -2302,6 +2302,19 @@
     $('planAnnual').classList.toggle('selected', plan === 'annual');
   }
 
+  // ── Promo code handling ─────────────────────────────────────────────────────
+  // If URL has ?promo=CODE, store in sessionStorage so it survives the signup modal flow.
+  // Surface it visually in the plan-selection view so users see the discount before paying.
+  (function () {
+    try {
+      const urlPromo = new URLSearchParams(window.location.search).get('promo');
+      if (urlPromo) sessionStorage.setItem('mwl_promo', urlPromo.trim().toUpperCase());
+    } catch (e) {}
+  })();
+  function getActivePromo() {
+    try { return sessionStorage.getItem('mwl_promo'); } catch (e) { return null; }
+  }
+
   $('btnProceedToPay').addEventListener('click', async () => {
     if (!currentSession) return;
     const btn = $('btnProceedToPay');
@@ -2309,11 +2322,13 @@
     btn.textContent = 'Preparing payment…';
     setMsg('planMsg', '', false);
 
+    const promo = getActivePromo();
+
     try {
       const res = await fetch('/api/payfast-init', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ plan: selectedPlan, access_token: currentSession.access_token }),
+        body:    JSON.stringify({ plan: selectedPlan, access_token: currentSession.access_token, promo: promo || undefined }),
       });
 
       let json;
