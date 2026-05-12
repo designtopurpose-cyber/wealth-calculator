@@ -198,7 +198,12 @@ async function sendEmail(toEmail, payload) {
       headers: { 'List-Unsubscribe': `<${unsubscribeUrl(toEmail)}>` },
     }),
   });
-  return r.ok;
+  if (!r.ok) {
+    let body = '';
+    try { body = await r.text(); } catch (e) {}
+    return { ok: false, status: r.status, body: body.slice(0, 300) };
+  }
+  return { ok: true };
 }
 
 // ── Main handler ─────────────────────────────────────────────────────────────
@@ -218,37 +223,52 @@ async function handler(req, res) {
 
   let sent = 0;
   let skipped = 0;
+  const debug = [];
+
   for (const sub of subscribers) {
     const days = ageInDays(sub.captured_at);
     const sentSteps = await getSentSteps(sub.id);
+    const sentList = Array.from(sentSteps);
 
-    // Find earliest unsent step that's now eligible
     let stepToSend = null;
     for (const step of STEPS) {
       if (sentSteps.has(step.name)) continue;
       if (days >= step.daysOld) { stepToSend = step; break; }
     }
-    if (!stepToSend) continue;
 
-    // Skip if Pro user (don't nag paying customers)
-    try {
-      if (await isProUser(sub.email)) { skipped++; continue; }
-    } catch (err) {
-      console.warn('isProUser check failed for', sub.email, err);
-      // Fall through and send anyway — better to occasionally email a Pro user than to silently skip all
+    if (!stepToSend) {
+      debug.push({ id: sub.id, email: sub.email, days, sentSteps: sentList, outcome: 'no_eligible_step' });
+      continue;
+    }
+
+    let isPro = false;
+    try { isPro = await isProUser(sub.email); }
+    catch (err) {
+      debug.push({ id: sub.id, email: sub.email, days, step: stepToSend.name, outcome: 'isProUser_error', error: String(err).slice(0, 200) });
+    }
+    if (isPro) {
+      skipped++;
+      debug.push({ id: sub.id, email: sub.email, days, step: stepToSend.name, outcome: 'skipped_pro' });
+      continue;
     }
 
     const payload = buildEmail(stepToSend.name, sub.email);
-    if (!payload) continue;
+    if (!payload) {
+      debug.push({ id: sub.id, email: sub.email, days, step: stepToSend.name, outcome: 'payload_null' });
+      continue;
+    }
 
-    const ok = await sendEmail(sub.email, payload);
-    if (ok) {
+    const result = await sendEmail(sub.email, payload);
+    if (result.ok) {
       await markSent(sub.id, stepToSend.name);
       sent++;
+      debug.push({ id: sub.id, email: sub.email, days, step: stepToSend.name, outcome: 'sent' });
+    } else {
+      debug.push({ id: sub.id, email: sub.email, days, step: stepToSend.name, outcome: 'resend_failed', status: result.status, body: result.body });
     }
   }
 
-  return res.status(200).json({ sent, skipped, total: subscribers.length });
+  return res.status(200).json({ sent, skipped, total: subscribers.length, debug });
 }
 
 module.exports = handler;
