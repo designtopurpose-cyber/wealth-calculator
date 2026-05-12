@@ -55,7 +55,7 @@
 <div class="page">
   <div class="page-eyebrow">Legal</div>
   <h1>Privacy Policy</h1>
-  <p class="updated">Last updated: 11 May 2026 (later that day — scenario email capture)</p>
+  <p class="updated">Last updated: 11 May 2026 (later that day — email nurture sequence)</p>
 
   <p>This Privacy Policy describes how MyWealthLens ("we", "us", or "our") collects, uses, and protects your personal information when you use our websites at <a href="https://mywealthlens.co.za">mywealthlens.co.za</a> and <a href="https://mywealthlens.com">mywealthlens.com</a>, and our Pro subscription service.</p>
   <p>We comply with South Africa's Protection of Personal Information Act (POPIA) and the EU General Data Protection Regulation (GDPR).</p>
@@ -78,7 +78,8 @@
     <li>The scenario inputs and result shown on screen at the time you click Send — embedded into the email body. Scenario data is not stored on our servers</li>
     <li>Your marketing consent — whether you ticked the optional "send occasional MyWealthLens insights" checkbox</li>
   </ul>
-  <p>If you tick the marketing consent checkbox, your email and consent state are stored in our marketing-subscribers database (Supabase). If you do not tick it, your email address is used only to send the scenario email and is not stored on our servers, though Resend (our email provider) retains delivery logs for up to 90 days per their privacy policy. You can withdraw consent at any time by emailing <a href="mailto:support@mywealthlens.com">support@mywealthlens.com</a>.</p>
+  <p>If you tick the marketing consent checkbox, your email and consent state are stored in our marketing-subscribers database (Supabase). If you do not tick it, your email address is used only to send the scenario email and is not stored on our servers, though Resend (our email provider) retains delivery logs for up to 90 days per their privacy policy.</p>
+  <p><strong>What marketing-list subscribers receive:</strong> If you opt in to marketing communications, you will receive a nurture sequence of approximately 6 educational emails over 30 days (covering topics like real vs nominal returns, retirement income planning, and tax-efficient investing in South Africa), followed by occasional re-engagement emails. Each email contains a one-click unsubscribe link and is also recorded with a <code>List-Unsubscribe</code> header so it can be unsubscribed via your email client. We track which nurture emails have been sent to you (in our <code>nurture_emails_sent</code> table) so the sequence doesn't repeat. Pro subscribers are automatically excluded from this sequence. You can withdraw consent at any time by clicking unsubscribe in any email or by emailing <a href="mailto:support@mywealthlens.com">support@mywealthlens.com</a>.</p>
 
   <h2>3. How we use your data</h2>
   <ul>

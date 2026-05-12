@@ -5,7 +5,8 @@
     { "source": "/api/:path*", "destination": "/api/:path*" }
   ],
   "crons": [
-    { "path": "/api/renewal-reminder", "schedule": "0 6 * * *" }
+    { "path": "/api/renewal-reminder",  "schedule": "0 6 * * *" },
+    { "path": "/api/free-user-nurture", "schedule": "0 6 * * *" }
   ],
   "functions": {
     "api/*.js": { "maxDuration": 10 }
