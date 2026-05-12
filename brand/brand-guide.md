@@ -134,7 +134,7 @@ Examples:
 - "How much you need in SA to retire on R30k/month for life"
 - "Two-pot retirement system: how it changes your withdrawal math"
 - "Why most SA retirees outlive their savings (and what number prevents it)"
-- "The R36k TFSA limit — what 30 years of maxing it actually builds"
+- "The R46k TFSA limit — what 30 years of maxing it actually builds"
 
 ### Pillar 3 — "Goal Solver in action"
 *Demos of the actual tool solving real questions. Screenshots + caption.*
@@ -183,7 +183,7 @@ Cold-open lines that have a high chance of stopping the scroll. Categorise by in
 ### Number hooks
 - "R3,200/month for 25 years = R5.2m. Here's the math."
 - "1% in fees costs you 26% of your retirement. Not 1%."
-- "R36,000 a year. 30 years. 9% real return. R5.4m tax-free."
+- "Max your R500k TFSA. 30 years at 9% real return. ~R4.5m tax-free."
 
 ### Pain hooks
 - "Most South Africans run out of money in retirement. Here's why."
@@ -265,7 +265,7 @@ MyWealthLens is a **calculator and education tool**, NOT a registered financial 
 - "Past performance ≠ future returns."
 
 ### Comparison content
-You may **compare publicly available products by their stated features** (e.g. "TFSA limit is R36k; RA limit is 27.5% of income up to R350k") but never editorialise which is "better" without the disclaimer that it depends on individual circumstances.
+You may **compare publicly available products by their stated features** (e.g. "TFSA annual limit is R46k; RA limit is 27.5% of income up to R350k") but never editorialise which is "better" without the disclaimer that it depends on individual circumstances.
 
 ---
 

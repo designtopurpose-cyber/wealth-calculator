@@ -96,14 +96,15 @@
       padding: 16px 24px;
       display: grid;
       grid-template-columns: 340px 1fr;
-      grid-template-rows: auto auto auto auto;
+      grid-template-rows: auto auto auto auto auto;
       gap: 14px;
     }
     .summary-bar   { grid-column: 1 / -1; grid-row: 1; }
     #inputsCard    { grid-row: 2; }
     .chart-card    { grid-row: 2; }
-    #goalPanelWrap { grid-column: 1 / -1; grid-row: 3; }
-    #proWrap       { grid-column: 1 / -1; grid-row: 4; }
+    .msg-banner    { grid-column: 1 / -1; grid-row: 3; }
+    #goalPanelWrap { grid-column: 1 / -1; grid-row: 4; }
+    #proWrap       { grid-column: 1 / -1; grid-row: 5; }
 
     /* ── Cards ── */
     .card {
@@ -874,9 +875,10 @@
       .summary-bar   { grid-column: 1; grid-row: 1; grid-template-columns: repeat(2, 1fr); }
       #inputsCard    { grid-row: 2; }
       .chart-card    { grid-row: 3; }
-      #tfsaPanelWrap { grid-column: 1; grid-row: 4; }
-      #goalPanelWrap { grid-column: 1; grid-row: 5; }
-      #proWrap       { grid-column: 1; grid-row: 6; }
+      .msg-banner    { grid-column: 1; grid-row: 4; }
+      #tfsaPanelWrap { grid-column: 1; grid-row: 5; }
+      #goalPanelWrap { grid-column: 1; grid-row: 6; }
+      #proWrap       { grid-column: 1; grid-row: 7; }
 
       .stat:nth-child(2) { border-right: none; }
       .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--border); }
@@ -1102,7 +1104,7 @@
     }
 
     /* ── TFSA Panel ── */
-    #tfsaPanelWrap { grid-column: 1 / -1; grid-row: 3; display: none; }
+    #tfsaPanelWrap { grid-column: 1 / -1; grid-row: 4; display: none; }
     #app.tfsa-mode #tfsaPanelWrap { display: block; }
     .tfsa-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 24px; display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
     .tfsa-divider { width: 1px; align-self: stretch; background: var(--border); flex-shrink: 0; }
@@ -1341,13 +1343,6 @@
     </div>
   </div>
 
-  <!-- ── In-product messaging banner (Phase 3) ── -->
-  <div class="msg-banner" id="msgBanner" role="region" aria-label="Suggestion">
-    <span class="msg-banner-text" id="msgBannerText"></span>
-    <a class="msg-banner-cta" id="msgBannerCta" href="index.html#pricing">See more →</a>
-    <button class="msg-banner-close" id="msgBannerClose" type="button" aria-label="Dismiss">×</button>
-  </div>
-
   <!-- ── Inputs Card ── -->
   <div class="card" id="inputsCard">
     <div class="card-title">Calculator</div>
@@ -1500,6 +1495,13 @@
   </div>
 
   <!-- ── Goal Panel (row 3, full width) ── -->
+  <!-- ── In-product messaging banner (Phase 3) ── -->
+  <div class="msg-banner" id="msgBanner" role="region" aria-label="Suggestion">
+    <span class="msg-banner-text" id="msgBannerText"></span>
+    <a class="msg-banner-cta" id="msgBannerCta" href="index.html#pricing">See more →</a>
+    <button class="msg-banner-close" id="msgBannerClose" type="button" aria-label="Dismiss">×</button>
+  </div>
+
   <div id="goalPanelWrap">
     <div class="card goal-card">
       <div class="goal-solve-section">
@@ -2306,6 +2308,10 @@
       if (P < 0) { setError('initialCapital', 'Cannot be negative'); return; }
       if (r < 0) { setError('annualRate', 'Cannot be negative'); return; }
       if (PMT < 0) { setError('monthlyContrib', 'Cannot be negative'); return; }
+      if (STATE.mode === 'tfsa' && P > 500000) {
+        setError('initialCapital', 'Exceeds R500,000 TFSA lifetime cap — SARS levies a 40% penalty on contributions above this limit (Section 12T, Income Tax Act).');
+        return;
+      }
 
       const series = STATE.mode === 'tfsa'
         ? MATH.buildTfsaYearSeries(P, r, PMT, currentAge, targetAge)

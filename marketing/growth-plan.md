@@ -214,14 +214,17 @@ Defined once pixel has fired for ~7+ days. Saved inside Meta / Google as Custom 
 |---|---|---|---|
 | 1 | Inline email-capture in `calculator.html` (HTML email via Resend; no PDF attachment) | 2–4 h | Highest leverage; everything compounds off this. **✅ Shipped + tested 2026-05-11** |
 | 2 | Install Meta Pixel + Google Ads tag (Section 4.1) | 1 h | Pixel passively builds audiences while you build other things |
-| 3 | In-product messaging triggers T1–T6 (Section 2.2) | 4–6 h | High leverage, all client-side. **🧪 Shipped 2026-05-11, awaiting test** |
+| 3 | In-product messaging triggers T1–T6 (Section 2.2) | 4–6 h | High leverage, all client-side. **✅ Shipped + tested 2026-05-11 (T1–T4 + T6 verified; T5 requires 10-min wait, accepted untested)** |
 | 4 | Email nurture infrastructure (Section 3 — schema + cron + first 3 emails) | 6–8 h | Schema + Vercel function + Resend templates |
 | 5 | Email nurture content (emails 4–8) | 2–3 h | Lighter — just templates once infrastructure exists |
-| 6 | Launch first paid retargeting campaign | 2 h | Once pixel has 14+ days of audience data |
+| 5.5 | **Organic content campaign via Blotato MCP** — start posting per the brand guide cadence (LinkedIn 3×/wk, X 1–2×/day, Threads 3–5×/wk, etc.) to drive traffic to mywealthlens.co.za | 2 h setup + ongoing daily generation | **Pre-requisite for Phase 6.** Pixel audiences only accumulate if there's actual traffic. Organic content does this for free while paid retargeting audiences mature. Without this, Phase 6 has no audiences to target. |
+| 6 | Launch first paid retargeting campaign | 2 h | Once pixel has 14+ days of audience data **from the Blotato organic campaign** |
 
-**Total:** ~17–24 hours of build, plus R1,500/m initial ad spend.
+**Total:** ~17–24 hours of build + ~2 hours Blotato setup, plus R1,500/m initial ad spend.
 
 **MVP (highest priority):** Phases 1 + 2. ~3–5 hours of work; captures emails AND starts retargeting audience-building immediately.
+
+**Critical dependency for Phase 6:** Paid retargeting requires real visitors to populate retargeting audiences. Phase 5.5 (Blotato organic content campaign) is the upstream driver — without organic-content traffic, pixel data accumulates too slowly to make Phase 6 viable. Intended sequence: ship Phases 1–5 → start Phase 5.5 → let pixels accumulate for 14+ days → launch Phase 6.
 
 ---
 

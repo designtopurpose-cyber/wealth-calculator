@@ -9,6 +9,10 @@ Always make code changes directly on the `main` branch. Do not use worktrees or 
 
 When offering troubleshooting solutions or hypotheses, list them from **most likely and simplest** to **least likely and most complex**. The user wants to try the cheap, common fixes first before being asked to do anything elaborate.
 
+## Brand guide maintenance (for Blotato MCP)
+
+Whenever a change affects product features, pricing, positioning, free vs Pro split, content pillars, hashtags, hooks, CTAs, voice rules, or any other content used by the Blotato MCP for AI-generated social posts, update `brand/brand-guide.md` in the same turn. The brand guide is the source of truth for Blotato — out-of-date claims propagate to every generated post and create real reputational + compliance risk. Treat the brand guide like the architecture doc and the privacy policy: keep it accurate.
+
 ## Privacy Policy and Terms compliance
 
 Whenever a change affects data collection, third-party services, user rights, marketing/tracking technologies, payment flows, or anything else that may affect the Privacy Policy or Terms of Use, update `privacy-policy.html` and `terms.html` accordingly in the same turn. Treat these legal documents like the architecture doc — they must reflect the true current state of the system before any user-facing launch. Bump the "Last updated" date on every change.
