@@ -1207,6 +1207,46 @@
     .email-capture-btn.sent { background: #34d399; color: #0a0a0a; }
     .email-capture-btn.failed { background: #ef4444; color: #ffffff; }
     @media print { .email-capture { display: none !important; } }
+
+    /* ── In-product messaging banner (Phase 3 — growth plan §2.2) ── */
+    .msg-banner {
+      grid-column: 1 / -1;
+      background: var(--bg-card);
+      border-left: 3px solid var(--amber);
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin: 0 0 16px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      animation: msgFadeIn 0.25s ease;
+    }
+    @keyframes msgFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .msg-banner-text { flex: 1; color: var(--text); line-height: 1.4; }
+    .msg-banner-cta {
+      background: var(--amber); color: #0a0a0a;
+      padding: 6px 12px; border-radius: 6px;
+      text-decoration: none; font-weight: 600; font-size: 0.82rem;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    .msg-banner-cta:hover { opacity: 0.9; }
+    .msg-banner-close {
+      background: transparent; border: none;
+      color: var(--text-muted); font-size: 1.2rem; line-height: 1;
+      cursor: pointer; padding: 4px 8px; margin: -4px -8px -4px 0;
+      transition: color 0.15s;
+    }
+    .msg-banner-close:hover { color: var(--text); }
+    @media (max-width: 600px) {
+      .msg-banner { font-size: 0.8rem; padding: 10px 14px; }
+      .msg-banner-cta { padding: 5px 10px; font-size: 0.78rem; }
+    }
+    @media print { .msg-banner { display: none !important; } }
   </style>
 <!-- Cookie consent + conditional analytics/advertising trackers (POPIA/GDPR) -->
 <script src="/consent.js" defer></script>
@@ -1299,6 +1339,13 @@
       <div class="stat-value" id="stat4Value">—</div>
       <div class="stat-sub" id="stat4Sub">Years to target age</div>
     </div>
+  </div>
+
+  <!-- ── In-product messaging banner (Phase 3) ── -->
+  <div class="msg-banner" id="msgBanner" role="region" aria-label="Suggestion">
+    <span class="msg-banner-text" id="msgBannerText"></span>
+    <a class="msg-banner-cta" id="msgBannerCta" href="index.html#pricing">See more →</a>
+    <button class="msg-banner-close" id="msgBannerClose" type="button" aria-label="Dismiss">×</button>
   </div>
 
   <!-- ── Inputs Card ── -->
@@ -3222,6 +3269,168 @@
     });
   });
 
+})();
+
+// ─── In-product messaging triggers (Phase 3 — growth plan §2.2) ───
+(function () {
+  'use strict';
+
+  var STORAGE_PREFIX = 'mwl_msg_dismissed_';
+  var banner, bannerText, bannerCta, bannerClose;
+  var currentTrigger = null;
+
+  // Ordered by priority — most specific first
+  var triggers = [
+    {
+      id: 'T3',
+      message: "You're maxing TFSA. Beyond the cap, tax matters more.",
+      cta: 'See post-tax compounding →',
+      check: function () {
+        var modeEl = document.querySelector('.mode-btn.active');
+        if (!modeEl || modeEl.getAttribute('data-mode') !== 'tfsa') return false;
+        var monthly = parseFloat(((document.getElementById('monthlyContrib') || {}).value || '0').replace(/[^0-9.]/g, ''));
+        return monthly >= 3000;
+      },
+    },
+    {
+      id: 'T6',
+      message: 'At this savings level, CGT and dividends compound up.',
+      cta: 'See the tax impact →',
+      check: function () {
+        var monthly = parseFloat(((document.getElementById('monthlyContrib') || {}).value || '0').replace(/[^0-9.]/g, ''));
+        return monthly >= 10000;
+      },
+    },
+    {
+      id: 'T2',
+      message: "You've planned to your target age. Most retirements last 20–30 more years.",
+      cta: 'Plan the drawdown →',
+      check: function () {
+        var targetAge = parseInt((document.getElementById('targetAge') || {}).value || '0', 10);
+        return targetAge >= 60;
+      },
+    },
+    {
+      id: 'T1',
+      message: "You found your number — at today's rand. Inflation eats into it.",
+      cta: 'See real returns →',
+      check: function () {
+        var modeEl = document.querySelector('.mode-btn.active');
+        if (!modeEl || modeEl.getAttribute('data-mode') !== 'goal') return false;
+        var finalVal = (document.getElementById('statFinal') || {}).textContent;
+        return finalVal && finalVal !== '—';
+      },
+    },
+    {
+      id: 'T4',
+      message: 'Comparing scenarios? Pro lays them out side-by-side.',
+      cta: 'See 3-scenario compare →',
+      check: function () {
+        try { return parseInt(sessionStorage.getItem('mwl_mode_toggles') || '0', 10) >= 3; }
+        catch (e) { return false; }
+      },
+    },
+    {
+      id: 'T5',
+      message: 'This is real planning.',
+      cta: 'Save it as a PDF →',
+      check: function () { return window.__mwl_t5_eligible === true; },
+    },
+  ];
+
+  function isDismissed(id) {
+    try { return sessionStorage.getItem(STORAGE_PREFIX + id) === '1'; }
+    catch (e) { return false; }
+  }
+  function setDismissed(id) {
+    try { sessionStorage.setItem(STORAGE_PREFIX + id, '1'); } catch (e) {}
+  }
+
+  function evaluate() {
+    if (!banner) return;
+    for (var i = 0; i < triggers.length; i++) {
+      var t = triggers[i];
+      if (isDismissed(t.id)) continue;
+      try {
+        if (t.check()) {
+          if (currentTrigger === t.id) return; // already showing
+          show(t);
+          return;
+        }
+      } catch (e) {}
+    }
+    hide();
+  }
+
+  function show(t) {
+    bannerText.textContent = t.message;
+    bannerCta.textContent = t.cta;
+    banner.style.display = 'flex';
+    currentTrigger = t.id;
+  }
+  function hide() {
+    if (banner) banner.style.display = 'none';
+    currentTrigger = null;
+  }
+  function dismiss() {
+    if (currentTrigger) {
+      setDismissed(currentTrigger);
+      hide();
+      evaluate();
+    }
+  }
+
+  function isProUser() {
+    // After initProState() runs, lock-badges have inline display:none for Pro users
+    var lock = document.querySelector('.lock-badge');
+    return lock && lock.style.display === 'none';
+  }
+
+  function init() {
+    if (isProUser()) return; // Don't nag subscribers
+    banner = document.getElementById('msgBanner');
+    bannerText = document.getElementById('msgBannerText');
+    bannerCta = document.getElementById('msgBannerCta');
+    bannerClose = document.getElementById('msgBannerClose');
+    if (!banner) return;
+
+    bannerClose.addEventListener('click', dismiss);
+
+    // Re-evaluate when any input changes
+    document.querySelectorAll('input, select').forEach(function (el) {
+      el.addEventListener('input', evaluate);
+      el.addEventListener('change', evaluate);
+    });
+
+    // Count mode toggles for T4
+    document.querySelectorAll('.mode-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        try {
+          var n = parseInt(sessionStorage.getItem('mwl_mode_toggles') || '0', 10) + 1;
+          sessionStorage.setItem('mwl_mode_toggles', String(n));
+        } catch (e) {}
+        setTimeout(evaluate, 100);
+      });
+    });
+
+    // T5 — 10 minute engagement timer
+    setTimeout(function () {
+      window.__mwl_t5_eligible = true;
+      evaluate();
+    }, 10 * 60 * 1000);
+
+    // Initial evaluation after calculator has settled
+    setTimeout(evaluate, 500);
+  }
+
+  // Wait for initProState() async Supabase check (~1-2s); then decide if we should run
+  setTimeout(function () {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  }, 1500);
 })();
 
 // ─── Email scenario capture (Phase 1 — growth plan §2.1) ───
