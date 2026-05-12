@@ -127,7 +127,9 @@ async function sendEmail(email, scenario) {
 }
 
 async function addToMarketingList(email) {
-  await fetch(`${SUPABASE_URL}/rest/v1/marketing_subscribers`, {
+  // on_conflict=email tells PostgREST to UPSERT on the email UNIQUE column
+  // rather than failing with 409 on duplicates.
+  await fetch(`${SUPABASE_URL}/rest/v1/marketing_subscribers?on_conflict=email`, {
     method:  'POST',
     headers: {
       'apikey':        SUPABASE_SERVICE_KEY,

@@ -41,12 +41,17 @@ wealth-calculator/
 ├── terms.html
 ├── vercel.json             # Routing, cron schedule, function config
 ├── package.json            # Node engine spec only (no runtime deps)
-└── api/
-    ├── payfast-init.js     # POST — builds signed PayFast subscription form params
-    ├── webhook.js          # POST — PayFast ITN handler (activates / cancels subscriptions)
-    ├── cancel.js           # POST — cancels active subscription via PayFast REST API
-    ├── upgrade.js          # POST — cancels monthly and builds annual upgrade form params
-    └── renewal-reminder.js # GET  — daily cron: sends 21-day renewal email via Resend
+├── consent.js              # Shared client-side script: cookie consent banner + Cloudflare Analytics (always) + Meta Pixel & Google Ads (on consent)
+├── config/
+│   └── region.js          # Single source of truth for region constants (currency, plans, payment gateway, baseUrl, payfast URLs)
+├── api/
+│   ├── payfast-init.js     # POST — builds signed PayFast subscription form params
+│   ├── webhook.js          # POST — PayFast ITN handler (activates / cancels subscriptions)
+│   ├── cancel.js           # POST — cancels active subscription via PayFast REST API
+│   ├── upgrade.js          # POST — cancels monthly and builds annual upgrade form params
+│   ├── send-scenario-email.js  # POST — sends current calculator scenario as branded HTML email via Resend; logs to marketing_subscribers if opt-in
+│   └── renewal-reminder.js # GET  — daily cron: sends 21-day renewal email via Resend
+└── brand/, marketing/, design-docs/  # Strategy + brand docs (not deployed)
 ```
 
 ---
@@ -82,9 +87,9 @@ All API calls that require authentication (payfast-init, cancel, upgrade) receiv
 
 ---
 
-## Subscription Data Model
+## Data Model
 
-Supabase `subscriptions` table:
+### Supabase `subscriptions` table
 
 | Column | Type | Description |
 |---|---|---|
@@ -105,6 +110,21 @@ Supabase `subscriptions` table:
                 ↑                                       |
                 └── upgrade (monthly → annual) ─────────┘
 ```
+
+### Supabase `marketing_subscribers` table
+
+Independent from `subscriptions`. Captures emails of users who opt in to marketing communications via the scenario email-capture form on `calculator.html`. Used as the source list for future nurture-email cron jobs.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `email` | text UNIQUE | Subscriber email (lowercased) |
+| `user_id` | uuid (nullable) | FK to `auth.users` if subscriber later creates an account |
+| `captured_at` | timestamptz | When captured |
+| `consent` | boolean | true if user ticked the marketing opt-in checkbox; false rows are not currently created (opt-out path is via not-adding) |
+| `unsubscribed_at` | timestamptz (nullable) | Set when user withdraws consent |
+| `source` | text | e.g. `scenario_email` (from `api/send-scenario-email.js`); future sources will use distinct values |
+| `region` | text | `'ZA'` / `'US'` — set from `config/region.js` |
 
 ---
 
@@ -151,10 +171,37 @@ Supabase `subscriptions` table:
 
 ```
 Vercel Cron (daily 06:00 UTC) → GET /api/renewal-reminder
-  → Query Supabase: annual + active + next_billing_date = today+21 + reminder_sent_at IS NULL
+  → Query Supabase: annual + active + region + next_billing_date = today+21 + reminder_sent_at IS NULL
   → For each match: fetch user email from Supabase Auth admin API
   → POST to Resend API (renewal email)
   → PATCH subscriptions.reminder_sent_at = now()
+```
+
+### Scenario email capture (growth funnel)
+
+```
+1. Anonymous user on calculator.html uses the calculator
+2. Inline panel below results offers "Email me this scenario"
+3. User enters email, optionally ticks marketing-consent checkbox
+4. Frontend POST /api/send-scenario-email { email, scenario, marketingConsent }
+5. Server validates email + builds branded HTML email of the scenario
+6. Server POSTs to Resend → email delivered
+7. If marketingConsent === true: server UPSERTs into marketing_subscribers
+   (transactional-only sends do NOT create a marketing row)
+8. Frontend cycles button: Send → Sending… → ✓ Sent / ✗ Failed
+```
+
+### Cookie consent + analytics layer
+
+```
+Every HTML page loads /consent.js (defer)
+On load, consent.js:
+  → Always loads Cloudflare Web Analytics (cookieless, no consent needed)
+  → Reads localStorage 'mwl_consent'
+  → If 'accepted': loads Meta Pixel + Google Ads gtag
+  → If null: shows consent banner (Accept / Decline / Privacy Policy)
+  → If 'declined': loads nothing further
+Consent state persists in localStorage; user can re-open banner via privacy-policy.html link
 ```
 
 ---

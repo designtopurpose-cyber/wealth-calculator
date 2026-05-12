@@ -1163,23 +1163,32 @@
 
     /* ── Email scenario capture ── */
     .email-capture {
+      grid-column: 1 / -1;
       margin: 24px 0 0;
       background: var(--bg-card);
       border: 1px solid var(--border, rgba(255,255,255,0.07));
       border-radius: 14px;
-      padding: 20px 24px;
+      padding: 18px 24px;
       display: flex;
       flex-wrap: wrap;
-      align-items: flex-start;
-      gap: 16px;
+      align-items: center;
+      gap: 18px;
     }
-    .email-capture-icon { font-size: 1.6rem; line-height: 1; flex-shrink: 0; margin-top: 2px; }
-    .email-capture-text { flex: 1; min-width: 200px; }
-    .email-capture-title { font-weight: 600; font-size: 0.95rem; color: var(--text); margin: 0 0 4px; }
-    .email-capture-sub { font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
-    .email-capture-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex: 2; min-width: 280px; }
+    .email-capture-text { flex: 1 1 220px; min-width: 0; }
+    .email-capture-title { font-weight: 600; font-size: 0.95rem; color: var(--text); margin: 0 0 2px; }
+    .email-capture-sub { font-size: 0.78rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
+    .email-capture-consent {
+      flex: 1 1 240px;
+      font-size: 0.78rem; color: var(--text-muted);
+      display: flex; align-items: flex-start; gap: 8px;
+      line-height: 1.5; cursor: pointer; margin: 0;
+    }
+    .email-capture-consent input[type="checkbox"] { margin: 2px 0 0; cursor: pointer; flex-shrink: 0; }
+    .email-capture-consent a { color: var(--amber); text-decoration: none; }
+    .email-capture-consent a:hover { text-decoration: underline; }
+    .email-capture-form { flex: 1 1 280px; display: flex; gap: 8px; min-width: 0; }
     .email-capture-input {
-      flex: 1; min-width: 180px; padding: 9px 12px;
+      flex: 1; min-width: 0; padding: 9px 12px;
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 8px;
@@ -1190,29 +1199,14 @@
       background: var(--amber); color: #0a0a0a;
       border: none; padding: 9px 18px; border-radius: 8px;
       font: inherit; font-weight: 600; font-size: 0.9rem;
-      cursor: pointer; white-space: nowrap;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
       transition: opacity 0.15s, background 0.15s;
     }
     .email-capture-btn:hover:not(:disabled) { opacity: 0.9; }
     .email-capture-btn:disabled { opacity: 0.7; cursor: not-allowed; }
     .email-capture-btn.sent { background: #34d399; color: #0a0a0a; }
     .email-capture-btn.failed { background: #ef4444; color: #ffffff; }
-    .email-capture-consent {
-      flex-basis: 100%;
-      font-size: 0.78rem; color: var(--text-muted);
-      display: flex; align-items: flex-start; gap: 8px; margin-top: 4px;
-    }
-    .email-capture-consent input[type="checkbox"] { margin: 2px 0 0; cursor: pointer; flex-shrink: 0; }
-    .email-capture-consent label { cursor: pointer; line-height: 1.5; }
-    .email-capture-consent a { color: var(--amber); text-decoration: none; }
-    .email-capture-consent a:hover { text-decoration: underline; }
-    @media (max-width: 700px) {
-      .email-capture { padding: 16px 18px; }
-      .email-capture-form { flex-basis: 100%; }
-    }
-    @media print {
-      .email-capture { display: none !important; }
-    }
+    @media print { .email-capture { display: none !important; } }
   </style>
 <!-- Cookie consent + conditional analytics/advertising trackers (POPIA/GDPR) -->
 <script src="/consent.js" defer></script>
@@ -1926,18 +1920,17 @@
 
   <!-- ── Email Scenario Capture ── -->
   <div class="email-capture" id="emailCapture">
-    <div class="email-capture-icon">📧</div>
     <div class="email-capture-text">
-      <p class="email-capture-title">Email me this scenario</p>
+      <p class="email-capture-title">📧 Email me this scenario</p>
       <p class="email-capture-sub">We'll send the current scenario to your inbox — useful to refer back to or share.</p>
     </div>
+    <label class="email-capture-consent">
+      <input type="checkbox" id="emailCaptureConsent" />
+      <span>Also send occasional MyWealthLens insights (unsubscribe any time). <a href="/privacy-policy" target="_blank">Privacy Policy</a></span>
+    </label>
     <div class="email-capture-form">
       <input type="email" id="emailCaptureInput" class="email-capture-input" placeholder="you@example.com" autocomplete="email" />
       <button type="button" id="emailCaptureBtn" class="email-capture-btn">Send →</button>
-      <div class="email-capture-consent">
-        <input type="checkbox" id="emailCaptureConsent" />
-        <label for="emailCaptureConsent">Also send occasional MyWealthLens insights (unsubscribe any time). <a href="/privacy-policy" target="_blank">Privacy Policy</a></label>
-      </div>
     </div>
   </div>
 
