@@ -111,6 +111,153 @@ Audience: anyone whose email is in our system (signup OR ticked the marketing-op
 | **60** | "Did you find what you were looking for?" | Acknowledge silence; ask for feedback (1-line reply); last value-add insight |
 | **90** | "Last call — and a question" | One last value pitch + clean unsubscribe link |
 
+### 3.1.1 Approved copy (all 8 emails)
+
+Locked 2026-05-11. Day 0–7 already shipped in code (Phase 4); Day 14–30 + 60–90 ship in Phase 5.
+
+---
+
+**Day 0 — Welcome (shipped Phase 4)**
+*Subject:* Welcome to MyWealthLens — your first scenario awaits
+
+> Thanks for joining MyWealthLens. You've now got the South African wealth calculator built for the questions you actually have.
+>
+> A few ideas to try right now (free, no signup needed beyond what you've done):
+> - **Goal Solver** — pick a target like R5m by 65, then see what monthly contribution or annual return gets you there.
+> - **Projection** — enter your current numbers and project forward to retirement age.
+> - **TFSA mode** — model your tax-free savings against the R46k annual and R500k lifetime caps.
+>
+> [Open the calculator →]
+>
+> P.S. Pro (R39/month) picks up where free leaves off — retirement-income drawdown planning, inflation-adjusted projections, tax analysis, and PDF exports. Free answers *"am I on track?"*. Pro answers *"what happens after?"*
+
+---
+
+**Day 3 — Real vs nominal returns (shipped Phase 4)**
+*Subject:* 12% returns aren't 12% returns — here's why
+
+> Most SA investors quote nominal returns. At 12% nominal and 6% inflation, your **real** return — what your purchasing power actually grows by — is closer to 5.7%, not 6%.
+>
+> It compounds. Over 30 years:
+> - R3,000/month at **12% nominal** → R10.6m on paper
+> - Same R3,000/month at **5.7% real** → R2.7m in today's rand
+>
+> Same investment. The first number is what your statement shows. The second is what you can actually buy with it.
+>
+> Pro's **Inflation-Adjusted Projections** show both side by side so you plan against real purchasing power, not paper numbers.
+>
+> [See real-return projections →]
+
+---
+
+**Day 7 — Plan for after (shipped Phase 4)**
+*Subject:* You set your number. Now plan for after.
+
+> Hitting your retirement number isn't the end of the planning — it's the start of the next 20–30 years of drawdown.
+>
+> The questions that actually matter at retirement:
+> - How much can I withdraw each month without running out?
+> - At what age does my plan break under different return scenarios?
+> - How does inflation eat into my drawdown over 25 years?
+>
+> Pro's **Forecast After Target** models the full retirement income picture — drawdown rates, depletion ages, and how robust your plan is across different return assumptions.
+>
+> [Plan the drawdown →]
+
+---
+
+**Day 14 — Tax impact (Phase 5)**
+*Subject:* How taxes silently halve your retirement
+
+> SARS doesn't take its cut at retirement. It takes it the whole way along — and most calculators ignore it.
+>
+> A R10m portfolio at retirement, in a regular (non-TFSA) investment account:
+> - **Capital gains tax** on ~R8m in gains → ~R1.4m gone
+> - **Dividends withholding tax** on R2m in dividends along the way → ~R400k gone
+> - Effective hit: ~R1.8m, almost 20% of the portfolio
+>
+> The R10m number you saw on the projection? You actually have R8.2m to spend.
+>
+> Pro's **Tax Analysis** runs your scenario through SARS's CGT inclusion rates and dividends withholding so you see the after-tax number — the one that pays your retirement.
+>
+> [See your real tax impact →]
+
+---
+
+**Day 21 — What Pro users discover (Phase 5)**
+*Subject:* Here's what Pro users discover first
+
+> When MyWealthLens users upgrade to Pro and run their existing scenario through the deeper tools, three things consistently surprise them:
+>
+> 1. *"I needed 30% more than I thought"* — once inflation is properly modeled into real purchasing power
+> 2. *"My money runs out at 78, not 90"* — once realistic drawdown is modeled, not just accumulation
+> 3. *"Taxes cost me 5-8 years of retirement"* — once CGT and dividends withholding are included
+>
+> Three scenarios. Three numbers you don't see in the free view.
+>
+> The tools that surface them:
+> - **Inflation-Adjusted Projections** — for the real-rand picture
+> - **Forecast After Target** — for the drawdown phase
+> - **Tax Analysis** — for the SARS cost
+>
+> [See your version →]
+
+---
+
+**Day 30 — Discount offer (Phase 5; requires promo backend)**
+*Subject:* Your first month of Pro for R19
+
+> You've been on the list a month. Here's a final nudge: try Pro for half off the first month.
+>
+> **R19** (vs R39) gets you full Pro access for 30 days:
+> - Forecast After Target
+> - Inflation-Adjusted Projections
+> - 3-Scenario Comparison
+> - Tax Analysis
+> - PDF Export
+>
+> Use code **FIRSTMONTH19** at checkout. Valid 7 days from this email.
+>
+> After 30 days your subscription continues at the normal amount (R39/month or R399/year). One-click cancel any time — no questions.
+>
+> [Try Pro for R19 →]
+
+---
+
+**Day 60 — Re-engagement (Phase 5; triggered only if opened ≤1 prior email)**
+*Subject:* Did you find what you were looking for?
+
+> We've sent a few emails over the past month. Looks like you might have already found what you needed — or moved on.
+>
+> No problem either way. Two quick options before we stop:
+>
+> **Still curious?** Hit reply and tell us what's missing from the calculator, or what would have made you upgrade. Honest feedback genuinely shapes the product — we read every reply.
+>
+> **One last useful number, then we'll stop:** Most South Africans need roughly **25–30× their annual expenses** saved to retire comfortably (the global "4% rule" adjusted for local conditions). If your expenses are R500k/year, that's R12.5m–R15m.
+>
+> [Run yours through the Goal Solver →]
+>
+> Whatever your answer, thanks for trying us out.
+
+---
+
+**Day 90 — Last call (Phase 5; final email)**
+*Subject:* Last call — and a question
+
+> This is the last email you'll get from us unless you upgrade to Pro or hit reply.
+>
+> Honest question: was MyWealthLens not useful, or just not for you yet?
+>
+> If it's not for you yet — that's fine. The calculator stays free forever. Come back when retirement planning gets concrete.
+>
+> If it's not useful, hit reply and tell us what was missing. Two sentences is enough; we read every reply.
+>
+> One last reminder: Pro (R39/month) is the version that answers retirement-income drawdown, real-purchasing-power projections, and the SARS tax impact on your portfolio — the questions free leaves open.
+>
+> Whatever you decide, thanks for the time.
+
+---
+
 ### 3.2 Trigger logic
 
 Daily Vercel cron (existing 06:00 UTC). New endpoint `api/free-user-nurture.js`:
@@ -215,8 +362,8 @@ Defined once pixel has fired for ~7+ days. Saved inside Meta / Google as Custom 
 | 1 | Inline email-capture in `calculator.html` (HTML email via Resend; no PDF attachment) | 2–4 h | Highest leverage; everything compounds off this. **✅ Shipped + tested 2026-05-11** |
 | 2 | Install Meta Pixel + Google Ads tag (Section 4.1) | 1 h | Pixel passively builds audiences while you build other things |
 | 3 | In-product messaging triggers T1–T6 (Section 2.2) | 4–6 h | High leverage, all client-side. **✅ Shipped + tested 2026-05-11 (T1–T4 + T6 verified; T5 requires 10-min wait, accepted untested)** |
-| 4 | Email nurture infrastructure (Section 3 — schema + cron + first 3 emails + unsubscribe endpoint) | 6–8 h | Schema + Vercel function + Resend templates. **🧪 Shipped 2026-05-11, awaiting test** |
-| 5 | Email nurture content (emails 4–8) | 2–3 h | Lighter — just templates once infrastructure exists |
+| 4 | Email nurture infrastructure (Section 3 — schema + cron + first 3 emails + unsubscribe endpoint) | 6–8 h | Schema + Vercel function + Resend templates. **✅ Shipped + tested 2026-05-11 (Day 0, 3, 7 all verified)** |
+| 5 | Email nurture content (Day 14, 21, 30, 60, 90) + **promo code backend in `payfast-init.js`** (Day 30 needs `FIRSTMONTH19` to apply R19 first-month price) + **Resend `email.opened` webhook + handler** to flip `nurture_emails_sent.opened` (Day 60 / 90 only fire to subscribers who opened ≤1 prior email) | 8–12 h | Heavier than originally scoped — adds promo support and open-tracking infrastructure. Copy already approved + saved in §3.1.1 |
 | 5.5 | **Organic content campaign via Blotato MCP** — start posting per the brand guide cadence (LinkedIn 3×/wk, X 1–2×/day, Threads 3–5×/wk, etc.) to drive traffic to mywealthlens.co.za | 2 h setup + ongoing daily generation | **Pre-requisite for Phase 6.** Pixel audiences only accumulate if there's actual traffic. Organic content does this for free while paid retargeting audiences mature. Without this, Phase 6 has no audiences to target. |
 | 6 | Launch first paid retargeting campaign | 2 h | Once pixel has 14+ days of audience data **from the Blotato organic campaign** |
 

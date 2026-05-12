@@ -75,12 +75,12 @@ function buildDay0(email) {
   <li><strong>TFSA mode</strong> — model your tax-free savings against the R46k annual and R500k lifetime caps.</li>
 </ul>
 ${emailCTA('Open the calculator →', config.baseUrl + '/calculator')}
-<p style="color:#94a3b8;font-size:0.82rem;margin-top:24px;">P.S. Pro (R39/month) adds retirement-income drawdown planning, inflation-adjusted projections, tax analysis, and PDF export. No pressure — the free tools cover most planning needs.</p>
+<p style="color:#94a3b8;font-size:0.82rem;margin-top:24px;">P.S. Pro (R39/month) picks up where free leaves off — retirement-income drawdown planning, inflation-adjusted projections, tax analysis, and PDF exports. Free answers <em>"am I on track?"</em>. Pro answers <em>"what happens after?"</em>.</p>
 `, email);
   return {
     subject: 'Welcome to MyWealthLens — your first scenario awaits',
     html,
-    text: `Welcome to MyWealthLens — your first scenario awaits.\n\nA few ideas to try right now:\n- Goal Solver: pick a target and see what gets you there\n- Projection: project your current numbers forward\n- TFSA mode: model R46k annual / R500k lifetime caps\n\nOpen the calculator → ${config.baseUrl}/calculator\n\nReturns illustrative only — not financial advice.\nUnsubscribe: ${unsubscribeUrl(email)}`,
+    text: `Welcome to MyWealthLens — your first scenario awaits.\n\nA few ideas to try right now:\n- Goal Solver: pick a target and see what gets you there\n- Projection: project your current numbers forward\n- TFSA mode: model R46k annual / R500k lifetime caps\n\nOpen the calculator → ${config.baseUrl}/calculator\n\nP.S. Pro (R39/month) picks up where free leaves off — retirement-income drawdown planning, inflation-adjusted projections, tax analysis, and PDF exports. Free answers "am I on track?". Pro answers "what happens after?".\n\nReturns illustrative only — not financial advice.\nUnsubscribe: ${unsubscribeUrl(email)}`,
   };
 }
 
@@ -223,52 +223,38 @@ async function handler(req, res) {
 
   let sent = 0;
   let skipped = 0;
-  const debug = [];
 
   for (const sub of subscribers) {
     const days = ageInDays(sub.captured_at);
     const sentSteps = await getSentSteps(sub.id);
-    const sentList = Array.from(sentSteps);
 
     let stepToSend = null;
     for (const step of STEPS) {
       if (sentSteps.has(step.name)) continue;
       if (days >= step.daysOld) { stepToSend = step; break; }
     }
+    if (!stepToSend) continue;
 
-    if (!stepToSend) {
-      debug.push({ id: sub.id, email: sub.email, days, sentSteps: sentList, outcome: 'no_eligible_step' });
-      continue;
-    }
-
-    let isPro = false;
-    try { isPro = await isProUser(sub.email); }
-    catch (err) {
-      debug.push({ id: sub.id, email: sub.email, days, step: stepToSend.name, outcome: 'isProUser_error', error: String(err).slice(0, 200) });
-    }
-    if (isPro) {
-      skipped++;
-      debug.push({ id: sub.id, email: sub.email, days, step: stepToSend.name, outcome: 'skipped_pro' });
-      continue;
+    try {
+      if (await isProUser(sub.email)) { skipped++; continue; }
+    } catch (err) {
+      console.warn('isProUser check failed for', sub.email, err);
+      // Fall through and send anyway — better than silently dropping nurture for all users on auth glitches
     }
 
     const payload = buildEmail(stepToSend.name, sub.email);
-    if (!payload) {
-      debug.push({ id: sub.id, email: sub.email, days, step: stepToSend.name, outcome: 'payload_null' });
-      continue;
-    }
+    if (!payload) continue;
 
     const result = await sendEmail(sub.email, payload);
     if (result.ok) {
       await markSent(sub.id, stepToSend.name);
       sent++;
-      debug.push({ id: sub.id, email: sub.email, days, step: stepToSend.name, outcome: 'sent' });
     } else {
-      debug.push({ id: sub.id, email: sub.email, days, step: stepToSend.name, outcome: 'resend_failed', status: result.status, body: result.body });
+      console.warn('Resend send failed for', sub.email, 'step', stepToSend.name, 'status', result.status, result.body);
     }
   }
 
-  return res.status(200).json({ sent, skipped, total: subscribers.length, debug });
+  return res.status(200).json({ sent, skipped, total: subscribers.length });
 }
 
 module.exports = handler;

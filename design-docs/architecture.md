@@ -50,6 +50,8 @@ wealth-calculator/
 │   ├── cancel.js           # POST — cancels active subscription via PayFast REST API
 │   ├── upgrade.js          # POST — cancels monthly and builds annual upgrade form params
 │   ├── send-scenario-email.js  # POST — sends current calculator scenario as branded HTML email via Resend; logs to marketing_subscribers if opt-in
+│   ├── free-user-nurture.js    # GET  — daily cron: sends Day 0/3/7 nurture emails to free signups via Resend; skips Pro users; records in nurture_emails_sent
+│   ├── unsubscribe.js          # GET  — validates unsubscribe token (sha256 of email + UNSUBSCRIBE_SECRET); sets marketing_subscribers.unsubscribed_at + consent=false
 │   └── renewal-reminder.js # GET  — daily cron: sends 21-day renewal email via Resend
 └── brand/, marketing/, design-docs/  # Strategy + brand docs (not deployed)
 ```
@@ -113,7 +115,7 @@ All API calls that require authentication (payfast-init, cancel, upgrade) receiv
 
 ### Supabase `marketing_subscribers` table
 
-Independent from `subscriptions`. Captures emails of users who opt in to marketing communications via the scenario email-capture form on `calculator.html`. Used as the source list for future nurture-email cron jobs.
+Independent from `subscriptions`. Captures emails of users who opt in to marketing communications via the scenario email-capture form on `calculator.html`. Used as the source list for the nurture-email cron and any future broadcast.
 
 | Column | Type | Description |
 |---|---|---|
@@ -122,9 +124,23 @@ Independent from `subscriptions`. Captures emails of users who opt in to marketi
 | `user_id` | uuid (nullable) | FK to `auth.users` if subscriber later creates an account |
 | `captured_at` | timestamptz | When captured |
 | `consent` | boolean | true if user ticked the marketing opt-in checkbox; false rows are not currently created (opt-out path is via not-adding) |
-| `unsubscribed_at` | timestamptz (nullable) | Set when user withdraws consent |
+| `unsubscribed_at` | timestamptz (nullable) | Set when user clicks the unsubscribe link (handled by `api/unsubscribe.js`) |
 | `source` | text | e.g. `scenario_email` (from `api/send-scenario-email.js`); future sources will use distinct values |
 | `region` | text | `'ZA'` / `'US'` — set from `config/region.js` |
+
+### Supabase `nurture_emails_sent` table
+
+Tracks which nurture emails have been sent to each subscriber so the daily cron doesn't re-send. Phase 4 ships with Day 0/3/7 steps; Phase 5 will add Day 14/21/30/60/90.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `subscriber_id` | uuid | FK to `marketing_subscribers.id` (cascade on delete) |
+| `email_step` | text | `'day_0'`, `'day_3'`, `'day_7'`, … |
+| `sent_at` | timestamptz | When sent |
+| `opened` | boolean | Reserved for Phase 5 Resend webhook open-tracking |
+
+UNIQUE constraint on `(subscriber_id, email_step)` enforces single-send per step per subscriber.
 
 ---
 
@@ -191,6 +207,34 @@ Vercel Cron (daily 06:00 UTC) → GET /api/renewal-reminder
 8. Frontend cycles button: Send → Sending… → ✓ Sent / ✗ Failed
 ```
 
+### Free-user email nurture (growth funnel)
+
+```
+Vercel Cron (daily 06:00 UTC) → GET /api/free-user-nurture
+  → Query marketing_subscribers WHERE consent=true AND unsubscribed_at IS NULL AND region matches
+  → For each subscriber:
+       - Compute days since captured_at
+       - Query nurture_emails_sent for steps already sent
+       - Find earliest unsent step where days >= step.daysOld (day_0:0, day_3:3, day_7:7)
+       - Skip if email matches an active/cancelling Pro subscription (Supabase Auth admin lookup)
+       - POST email to Resend with List-Unsubscribe header pointing to /api/unsubscribe
+       - INSERT into nurture_emails_sent on success
+  → Returns { sent, skipped, total }
+```
+
+### Unsubscribe flow
+
+```
+1. Every nurture email contains an unsubscribe link:
+     https://mywealthlens.co.za/api/unsubscribe?email=<email>&token=<token>
+     where token = sha256(lowercased_email + UNSUBSCRIBE_SECRET).slice(0,24)
+2. User clicks → GET /api/unsubscribe
+3. Server validates token (constant-time string compare)
+4. If valid: PATCH marketing_subscribers SET unsubscribed_at = now(), consent = false WHERE email = ?
+5. Returns a branded HTML confirmation page
+6. Subsequent nurture cron runs skip this subscriber automatically (consent=false filter)
+```
+
 ### Cookie consent + analytics layer
 
 ```
@@ -234,7 +278,8 @@ Consent state persists in localStorage; user can re-open banner via privacy-poli
 | `PF_MERCHANT_KEY` | payfast-init, upgrade | PayFast merchant key (form params) |
 | `PF_PASSPHRASE` | All PayFast signing functions | **Required**, byte-identical to the passphrase set in PayFast dashboard. Must be scoped to the project AND included in a fresh deployment (env var changes do not propagate to running functions until redeploy). |
 | `RESEND_API_KEY` | renewal-reminder | Resend transactional email API key |
-| `CRON_SECRET` | renewal-reminder | Optional — protects cron endpoint from external calls |
+| `CRON_SECRET` | renewal-reminder, free-user-nurture | Optional — protects cron endpoints from external calls |
+| `UNSUBSCRIBE_SECRET` | free-user-nurture, unsubscribe | Required — secret used to derive per-recipient unsubscribe tokens (sha256 of email + secret). Don't change after launch; rotating invalidates all previously-emailed unsubscribe links |
 
 ---
 
