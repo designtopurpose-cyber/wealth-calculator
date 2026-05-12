@@ -212,7 +212,7 @@ Defined once pixel has fired for ~7+ days. Saved inside Meta / Google as Custom 
 
 | Phase | What | Effort | Why this order |
 |---|---|---|---|
-| 1 | Inline email-capture in `calculator.html` (incl. PDF generation + Resend send) | 2–4 h | Highest leverage; everything compounds off this |
+| 1 | Inline email-capture in `calculator.html` (HTML email via Resend; no PDF attachment) | 2–4 h | Highest leverage; everything compounds off this. **🧪 Shipped 2026-05-11, awaiting test** |
 | 2 | Install Meta Pixel + Google Ads tag (Section 4.1) | 1 h | Pixel passively builds audiences while you build other things |
 | 3 | In-product messaging triggers T1–T6 (Section 2.2) | 4–6 h | High leverage, all client-side |
 | 4 | Email nurture infrastructure (Section 3 — schema + cron + first 3 emails) | 6–8 h | Schema + Vercel function + Resend templates |
