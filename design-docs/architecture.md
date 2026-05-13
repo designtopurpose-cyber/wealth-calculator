@@ -19,7 +19,7 @@ MyWealthLens is a South African personal finance and wealth-calculator web appli
 | **Auth** | Supabase Auth | Email/password; JWT access tokens |
 | **Database** | Supabase PostgreSQL | `subscriptions` table via REST API |
 | **Payments** | PayFast | South African recurring billing gateway |
-| **Email** | Resend | Transactional email via `noreply@mywealthlens.com` |
+| **Email** | Resend | Transactional email via `noreply@mywealthlens.co.za` |
 | **Hosting / CDN** | Vercel | Static files + serverless functions + cron scheduler. Both `mywealthlens.com` and `mywealthlens.co.za` aliased to the same project. |
 | **DNS** | Cloudflare (DNS only / grey cloud) | Both apex domains use CNAME flattening to `cname.vercel-dns.com`. Domain registered at Domains.co.za; Cloudflare nameservers `brett.ns.cloudflare.com` / `val.ns.cloudflare.com`. |
 | **Supabase JS SDK** | `@supabase/supabase-js v2` | Loaded from jsDelivr CDN on every page |
@@ -314,7 +314,7 @@ graph TD
     end
 
     subgraph Resend["Resend (Email)"]
-        EMAIL["Transactional Email\nnoreply@mywealthlens.com"]
+        EMAIL["Transactional Email\nnoreply@mywealthlens.co.za"]
     end
 
     %% Auth flow
@@ -375,7 +375,7 @@ The current build is **South Africa–specific by design** but is intended to be
 | Payment gateway | PayFast (SA-only, ZAR-only) | `api/*.js` | **Stripe is the obvious US choice** — recurring billing, USD, well-documented Node SDK |
 | Tax rules | SA tax brackets, TFSA, RA contributions | Calculator logic in `calculator.html` | US has 401(k), Roth IRA, Traditional IRA, federal/state brackets — needs a separate tax module |
 | Domain | `mywealthlens.com` | `BASE_URL` constant in API functions | Likely `mywealthlens.com` for US, `mywealthlens.co.za` for SA — see "Domain split" below |
-| Email sender | `noreply@mywealthlens.com` | `renewal-reminder.js` | Same domain or US-specific subdomain |
+| Email sender | `noreply@mywealthlens.co.za` | `renewal-reminder.js` | US-specific domain (e.g. `noreply@mywealthlens.com`) |
 | Language | English (SA spelling) | All HTML | English (US spelling) for US |
 | Marketing copy | SA-specific examples, references | Landing page, resources | Rewrite for US audience |
 

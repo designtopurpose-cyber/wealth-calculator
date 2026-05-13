@@ -22,7 +22,7 @@ const ZA = {
     apiBase: 'https://api.payfast.co.za',
   },
 
-  emailFrom: 'MyWealthLens <noreply@mywealthlens.com>',
+  emailFrom: 'MyWealthLens <noreply@mywealthlens.co.za>',
   supportEmail: 'support@mywealthlens.co.za',
   dateLocale: 'en-ZA',
 };

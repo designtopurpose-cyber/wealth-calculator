@@ -2005,6 +2005,16 @@
   .auth-msg.err { color: #f87171; }
   .auth-msg.ok  { color: #34d399; }
 
+  /* Promo notice inside modal */
+  .modal-promo {
+    display: none; background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.35);
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 14px;
+    font-size: 0.8rem; color: #fcd34d; line-height: 1.45;
+  }
+  .modal-promo.active { display: block; }
+  .modal-promo strong { color: #fde68a; }
+  .plan-price-strike { text-decoration: line-through; color: #64748b; font-size: 0.85rem; font-weight: 600; margin-right: 4px; font-family: 'Playfair Display', Georgia, serif; }
+
   /* Plan cards in modal */
   .plan-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
   .plan-card {
@@ -2048,6 +2058,7 @@
       <div class="auth-icon">🔓</div>
       <div class="auth-title" id="authTitle">Create your account</div>
       <p class="auth-sub">Sign up or log in to subscribe to MyWealthLens Pro.</p>
+      <div class="modal-promo" id="authPromoNotice"></div>
 
       <div class="auth-tabs">
         <button class="auth-tab active" id="tabSignup" type="button">Sign up</button>
@@ -2103,17 +2114,18 @@
       <div class="auth-icon">✨</div>
       <div class="auth-title">Choose your plan</div>
       <p class="auth-sub" id="plansSubtitle">Both plans include all Pro features. Cancel anytime.</p>
+      <div class="modal-promo" id="plansPromoNotice"></div>
 
       <div class="plan-cards">
         <div class="plan-card" id="planMonthly" onclick="selectPlan('monthly')">
           <div class="plan-card-header">
             <span class="plan-name">Pro Monthly</span>
             <div style="display:flex;align-items:center;gap:10px;">
-              <span class="plan-price">R39<span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/mo</span></span>
+              <span class="plan-price" id="planMonthlyPrice">R39<span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/mo</span></span>
               <span class="plan-check">✓</span>
             </div>
           </div>
-          <div class="plan-desc">Renews monthly · Cancel anytime</div>
+          <div class="plan-desc" id="planMonthlyDesc">Renews monthly · Cancel anytime</div>
         </div>
         <div class="plan-card" id="planAnnual" onclick="selectPlan('annual')">
           <div class="plan-card-header">
@@ -2339,6 +2351,12 @@
     'FIRSTMONTH19': {
       title: 'FIRSTMONTH19 applied',
       text:  'Your first month of Pro Monthly is <strong>R19</strong> (vs the normal R39). Your subscription then continues at R39/month — one-click cancel any time.',
+      // Modal-specific config:
+      plan:        'monthly',                                                // which plan card to discount
+      firstPrice:  'R19',                                                    // displayed first-charge price
+      fullPrice:   'R39',                                                    // displayed regular price (strike-through)
+      planDesc:    'First month <strong>R19</strong>, then R39/mo · Cancel anytime',
+      modalNotice: '<strong>FIRSTMONTH19 applied.</strong> First month R19, then R39/month. Cancel anytime.',
     },
   };
   const PROMO_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days, matches the email's "valid 7 days" claim
@@ -2364,6 +2382,36 @@
       }
       return parsed.code;
     } catch (e) { return null; }
+  }
+
+  function applyPromoToModal() {
+    const promo = getActivePromo();
+    const info  = promo && KNOWN_PROMOS[promo];
+    const authNotice  = document.getElementById('authPromoNotice');
+    const plansNotice = document.getElementById('plansPromoNotice');
+    const priceEl     = document.getElementById('planMonthlyPrice');
+    const descEl      = document.getElementById('planMonthlyDesc');
+
+    if (!info) {
+      if (authNotice)  authNotice.classList.remove('active');
+      if (plansNotice) plansNotice.classList.remove('active');
+      if (priceEl) priceEl.innerHTML = 'R39<span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/mo</span>';
+      if (descEl)  descEl.textContent = 'Renews monthly · Cancel anytime';
+      return;
+    }
+
+    // Show notice on both views
+    if (authNotice)  { authNotice.innerHTML  = info.modalNotice; authNotice.classList.add('active'); }
+    if (plansNotice) { plansNotice.innerHTML = info.modalNotice; plansNotice.classList.add('active'); }
+
+    // Rewrite the eligible plan card (currently always 'monthly')
+    if (info.plan === 'monthly' && priceEl && descEl) {
+      priceEl.innerHTML = `<span class="plan-price-strike">${info.fullPrice}</span>${info.firstPrice}<span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/1st mo</span>`;
+      descEl.innerHTML  = info.planDesc;
+      // Pre-select the discounted plan so the user lands on it
+      selectedPlan = 'monthly';
+      highlightPlan('monthly');
+    }
   }
 
   function renderPromoBanner() {
@@ -2454,6 +2502,7 @@
       setAuthTab('signup');
       highlightPlan(selectedPlan);
     }
+    applyPromoToModal();
   }
 
   function closeProModal() {

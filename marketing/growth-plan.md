@@ -299,7 +299,7 @@ opened          boolean NOT NULL DEFAULT false  -- updated via Resend webhook
 
 ### 3.4 Compliance (every email)
 
-- Sender identity: `MyWealthLens <noreply@mywealthlens.com>`
+- Sender identity: `MyWealthLens <noreply@mywealthlens.co.za>`
 - Physical address in footer (POPIA + GDPR)
 - One-click unsubscribe link (Resend native)
 - "You're receiving this because…" line
