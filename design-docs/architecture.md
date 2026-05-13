@@ -50,8 +50,9 @@ wealth-calculator/
 │   ├── cancel.js           # POST — cancels active subscription via PayFast REST API
 │   ├── upgrade.js          # POST — cancels monthly and builds annual upgrade form params
 │   ├── send-scenario-email.js  # POST — sends current calculator scenario as branded HTML email via Resend; logs to marketing_subscribers if opt-in
-│   ├── free-user-nurture.js    # GET  — daily cron: sends Day 0/3/7 nurture emails to free signups via Resend; skips Pro users; records in nurture_emails_sent
+│   ├── free-user-nurture.js    # GET  — daily cron: sends Day 0/3/7/14/21/30/60/90 nurture emails to free signups via Resend; skips Pro users; Day 60/90 gated to subscribers with ≤1 prior open; records in nurture_emails_sent
 │   ├── unsubscribe.js          # GET  — validates unsubscribe token (sha256 of email + UNSUBSCRIBE_SECRET); sets marketing_subscribers.unsubscribed_at + consent=false
+│   ├── resend-webhook.js       # POST — receives Resend events (Svix-signed); on email.opened flips nurture_emails_sent.opened=true (gates Day 60/90 sends)
 │   └── renewal-reminder.js # GET  — daily cron: sends 21-day renewal email via Resend
 └── brand/, marketing/, design-docs/  # Strategy + brand docs (not deployed)
 ```
@@ -130,17 +131,32 @@ Independent from `subscriptions`. Captures emails of users who opt in to marketi
 
 ### Supabase `nurture_emails_sent` table
 
-Tracks which nurture emails have been sent to each subscriber so the daily cron doesn't re-send. Phase 4 ships with Day 0/3/7 steps; Phase 5 will add Day 14/21/30/60/90.
+Tracks which nurture emails have been sent to each subscriber so the daily cron doesn't re-send. Full step set (shipped through Phase 5): Day 0/3/7/14/21/30/60/90.
 
 | Column | Type | Description |
 |---|---|---|
 | `id` | uuid | Primary key |
 | `subscriber_id` | uuid | FK to `marketing_subscribers.id` (cascade on delete) |
-| `email_step` | text | `'day_0'`, `'day_3'`, `'day_7'`, … |
+| `email_step` | text | `'day_0'`, `'day_3'`, `'day_7'`, … `'day_90'` |
 | `sent_at` | timestamptz | When sent |
-| `opened` | boolean | Reserved for Phase 5 Resend webhook open-tracking |
+| `resend_email_id` | text | Resend message ID — used by `resend-webhook.js` to flip `opened` |
+| `opened` | boolean | Set true by `resend-webhook.js` on email.opened event; gates Day 60/90 sends |
 
 UNIQUE constraint on `(subscriber_id, email_step)` enforces single-send per step per subscriber.
+
+### Supabase `promo_redemptions` table
+
+Records each promo-code redemption to enforce single-use-per-email at the database layer.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | uuid | Primary key |
+| `code` | text | The promo code (e.g. `FIRSTMONTH19`) |
+| `user_id` | uuid | FK to `auth.users` (nullable for edge cases where ITN lacks `custom_str1`) |
+| `email` | text | Lowercased payer email from the ITN; the de-facto enforcement key |
+| `created_at` | timestamptz | Redemption timestamp |
+
+UNIQUE index on `(code, email)` enforces single-use-per-email. The row is inserted by `api/webhook.js` **only after** PayFast confirms `payment_status=COMPLETE`, so abandoned signups don't burn the promo. Insertion attempts at signup time (`api/payfast-init.js`'s `hasRedeemedPromo()` check) are read-only.
 
 ---
 
@@ -277,7 +293,8 @@ Consent state persists in localStorage; user can re-open banner via privacy-poli
 | `PF_MERCHANT_ID` | payfast-init, cancel, upgrade, webhook | PayFast merchant identifier |
 | `PF_MERCHANT_KEY` | payfast-init, upgrade | PayFast merchant key (form params) |
 | `PF_PASSPHRASE` | All PayFast signing functions | **Required**, byte-identical to the passphrase set in PayFast dashboard. Must be scoped to the project AND included in a fresh deployment (env var changes do not propagate to running functions until redeploy). |
-| `RESEND_API_KEY` | renewal-reminder | Resend transactional email API key |
+| `RESEND_API_KEY` | renewal-reminder, free-user-nurture, send-scenario-email | Resend transactional email API key |
+| `RESEND_WEBHOOK_SECRET` | resend-webhook | Svix signing secret for the `email.opened` webhook; required for signature verification + 5-minute replay protection |
 | `CRON_SECRET` | renewal-reminder, free-user-nurture | Optional — protects cron endpoints from external calls |
 | `UNSUBSCRIBE_SECRET` | free-user-nurture, unsubscribe | Required — secret used to derive per-recipient unsubscribe tokens (sha256 of email + secret). Don't change after launch; rotating invalidates all previously-emailed unsubscribe links |
 
