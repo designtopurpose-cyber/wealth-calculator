@@ -324,6 +324,9 @@
     // Post-payment polling: webhook may fire a few seconds after redirect
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.get('welcome') === '1' || urlParams.get('upgraded') === '1') {
+      // Successful subscription — clear any active promo so it doesn't visually
+      // re-apply on later pricing visits. Backend has already redeemed (single-use enforced).
+      try { localStorage.removeItem('mwl_promo'); } catch (e) {}
       history.replaceState({}, '', location.pathname);
       $('actionMsg').innerHTML =
         '<p style="color:var(--amber);font-size:0.85rem;">⏳ Verifying your payment — this can take up to 30 seconds…</p>';

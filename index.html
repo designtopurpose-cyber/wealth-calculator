@@ -2332,17 +2332,38 @@
   }
 
   // ── Promo code handling ─────────────────────────────────────────────────────
-  // If URL has ?promo=CODE, store in sessionStorage so it survives the signup modal flow.
-  // Surface it visually in the pricing section so users see the discount before paying.
+  // If URL has ?promo=CODE, store in localStorage with a 7-day TTL so the discount
+  // survives the email-confirmation flow (which often opens a new tab → empty sessionStorage).
+  // Cleared automatically on /account.html?welcome=1 (successful payment).
   const KNOWN_PROMOS = {
     'FIRSTMONTH19': {
       title: 'FIRSTMONTH19 applied',
       text:  'Your first month of Pro Monthly is <strong>R19</strong> (vs the normal R39). Your subscription then continues at R39/month — one-click cancel any time.',
     },
   };
+  const PROMO_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days, matches the email's "valid 7 days" claim
+
+  function storePromo(code) {
+    try {
+      localStorage.setItem('mwl_promo', JSON.stringify({
+        code:    String(code).trim().toUpperCase(),
+        expires: Date.now() + PROMO_TTL_MS,
+      }));
+    } catch (e) {}
+  }
 
   function getActivePromo() {
-    try { return sessionStorage.getItem('mwl_promo'); } catch (e) { return null; }
+    try {
+      const raw = localStorage.getItem('mwl_promo');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || !parsed.code || !parsed.expires) return null;
+      if (parsed.expires < Date.now()) {
+        localStorage.removeItem('mwl_promo');
+        return null;
+      }
+      return parsed.code;
+    } catch (e) { return null; }
   }
 
   function renderPromoBanner() {
@@ -2361,7 +2382,7 @@
   (function () {
     try {
       const urlPromo = new URLSearchParams(window.location.search).get('promo');
-      if (urlPromo) sessionStorage.setItem('mwl_promo', urlPromo.trim().toUpperCase());
+      if (urlPromo) storePromo(urlPromo);
     } catch (e) {}
     renderPromoBanner();
   })();
