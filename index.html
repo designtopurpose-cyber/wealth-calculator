@@ -1656,10 +1656,10 @@
     </div>
 
     <div class="pricing-card pro">
-      <div class="pricing-badge">Most Popular</div>
+      <div class="pricing-badge" id="proPricingBadge">Most Popular</div>
       <div class="pricing-tier">Pro</div>
-      <div class="pricing-price">R39</div>
-      <div class="pricing-period">per month</div>
+      <div class="pricing-price" id="proPricingPrice">R39</div>
+      <div class="pricing-period" id="proPricingPeriod">per month</div>
       <ul class="pricing-features">
         <li>Everything in Free</li>
         <li>Forecast After Target</li>
@@ -1669,8 +1669,8 @@
         <li>Export to PDF</li>
         <li>Sources &amp; Validation tab</li>
       </ul>
-      <button type="button" class="btn-pricing-pro" onclick="openProModal('monthly')">Unlock Pro — R39/month</button>
-      <div class="pricing-cancel">Cancel anytime · No contract</div>
+      <button type="button" class="btn-pricing-pro" id="proPricingCta" onclick="openProModal('monthly')">Unlock Pro — R39/month</button>
+      <div class="pricing-cancel" id="proPricingCancel">Cancel anytime · No contract</div>
     </div>
 
     <div class="pricing-card annual">
@@ -2417,14 +2417,44 @@
   function renderPromoBanner() {
     const promo = getActivePromo();
     const banner = document.getElementById('promoBanner');
-    if (!banner) return;
-    if (!promo || !KNOWN_PROMOS[promo]) { banner.classList.remove('active'); return; }
+
+    // Pricing card elements (Pro monthly)
+    const badgeEl  = document.getElementById('proPricingBadge');
+    const priceEl  = document.getElementById('proPricingPrice');
+    const periodEl = document.getElementById('proPricingPeriod');
+    const ctaEl    = document.getElementById('proPricingCta');
+    const cancelEl = document.getElementById('proPricingCancel');
+
+    if (!promo || !KNOWN_PROMOS[promo]) {
+      if (banner) banner.classList.remove('active');
+      // Reset Pro pricing card to defaults
+      if (badgeEl)  badgeEl.textContent  = 'Most Popular';
+      if (priceEl)  priceEl.innerHTML    = 'R39';
+      if (periodEl) periodEl.textContent = 'per month';
+      if (ctaEl)    ctaEl.textContent    = 'Unlock Pro — R39/month';
+      if (cancelEl) cancelEl.textContent = 'Cancel anytime · No contract';
+      return;
+    }
+
     const info = KNOWN_PROMOS[promo];
-    const titleEl = document.getElementById('promoBannerTitle');
-    const textEl  = document.getElementById('promoBannerText');
-    if (titleEl) titleEl.textContent = info.title;
-    if (textEl)  textEl.innerHTML    = info.text;
-    banner.classList.add('active');
+
+    // Top promo banner
+    if (banner) {
+      const titleEl = document.getElementById('promoBannerTitle');
+      const textEl  = document.getElementById('promoBannerText');
+      if (titleEl) titleEl.textContent = info.title;
+      if (textEl)  textEl.innerHTML    = info.text;
+      banner.classList.add('active');
+    }
+
+    // Update the Pro monthly pricing card to reflect the promo
+    if (info.plan === 'monthly') {
+      if (badgeEl)  badgeEl.textContent  = 'Promo Active';
+      if (priceEl)  priceEl.innerHTML    = `<span style="text-decoration:line-through;color:#64748b;font-size:0.55em;font-weight:600;margin-right:6px;">${info.fullPrice}</span>${info.firstPrice}`;
+      if (periodEl) periodEl.textContent = 'first month, then R39/month';
+      if (ctaEl)    ctaEl.textContent    = `Unlock Pro — ${info.firstPrice} first month`;
+      if (cancelEl) cancelEl.textContent = 'Cancel anytime · No contract';
+    }
   }
 
   (function () {
