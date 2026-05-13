@@ -115,6 +115,14 @@ async function handler(req, res) {
   const nameFirst = parts[0] || 'Pro';
   const nameLast  = parts.slice(1).join(' ') || 'User';
 
+  // IMPORTANT: PayFast validates the signature against fields in the order they appear
+  // in its documented attributes table — NOT alphabetical. Build params in that order:
+  //   merchant_id, merchant_key, return_url, cancel_url, notify_url,
+  //   name_first, name_last, email_address,
+  //   m_payment_id, amount, item_name,
+  //   custom_str1, custom_str2, custom_str3,
+  //   subscription_type, recurring_amount, frequency, cycles
+  // Inserting recurring_amount or custom_str3 out of order = 400 "signature does not match".
   const params = {
     merchant_id:       PF_MERCHANT_ID,
     merchant_key:      PF_MERCHANT_KEY,
@@ -129,17 +137,12 @@ async function handler(req, res) {
     item_name:         itemName,
     custom_str1:       user.id,
     custom_str2:       plan,
-    subscription_type: '1',
-    frequency,
-    cycles:            '0',
   };
-
-  // When a promo is applied, second-and-onward billing uses recurring_amount (full price).
-  // custom_str3 carries the promo code through to the webhook for redemption tracking.
-  if (promo) {
-    params.recurring_amount = fullPrice;
-    params.custom_str3      = promoApplied;
-  }
+  if (promo) params.custom_str3 = promoApplied;
+  params.subscription_type = '1';
+  if (promo) params.recurring_amount = fullPrice;
+  params.frequency = frequency;
+  params.cycles    = '0';
 
   params.signature = pfSignature(params);
 
