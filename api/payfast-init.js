@@ -17,13 +17,29 @@ const PF_PASSPHRASE       = process.env.PF_PASSPHRASE   || '';   // set in Verce
 const BASE_URL            = config.baseUrl;
 const PF_URL              = config.payfast.formUrl;
 
+// PHP's urlencode (which PayFast uses) encodes a strict subset: only
+// A-Z a-z 0-9 - _ . are left unescaped; everything else is %-encoded,
+// and spaces become '+'. encodeURIComponent leaves !*'() unescaped,
+// which breaks the signature when any field value contains those chars
+// (e.g. "Pro Monthly (FIRSTMONTH19)" → PHP encodes parens, JS doesn't).
+function phpUrlEncode(s) {
+  return encodeURIComponent(String(s))
+    .replace(/%20/g, '+')
+    .replace(/!/g,   '%21')
+    .replace(/'/g,   '%27')
+    .replace(/\(/g,  '%28')
+    .replace(/\)/g,  '%29')
+    .replace(/\*/g,  '%2A')
+    .replace(/~/g,   '%7E');
+}
+
 function pfSignature(data) {
   const str = Object.keys(data)
     .filter(k => data[k] !== '' && data[k] != null)
-    .map(k => `${k}=${encodeURIComponent(String(data[k])).replace(/%20/g, '+')}`)
+    .map(k => `${k}=${phpUrlEncode(data[k])}`)
     .join('&');
   const full = PF_PASSPHRASE
-    ? `${str}&passphrase=${encodeURIComponent(PF_PASSPHRASE).replace(/%20/g, '+')}`
+    ? `${str}&passphrase=${phpUrlEncode(PF_PASSPHRASE)}`
     : str;
   return crypto.createHash('md5').update(full).digest('hex');
 }

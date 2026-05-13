@@ -54,11 +54,24 @@ async function patchSubscription(userId, data) {
 
 // ── PayFast helpers ───────────────────────────────────────────────────────────
 
+// PHP's urlencode (which PayFast uses) encodes !*'() which encodeURIComponent leaves alone.
+// Mismatched encoding on item_name or any value with those chars = 400 signature mismatch.
+function phpUrlEncode(s) {
+  return encodeURIComponent(String(s))
+    .replace(/%20/g, '+')
+    .replace(/!/g,   '%21')
+    .replace(/'/g,   '%27')
+    .replace(/\(/g,  '%28')
+    .replace(/\)/g,  '%29')
+    .replace(/\*/g,  '%2A')
+    .replace(/~/g,   '%7E');
+}
+
 function pfApiSignature(timestamp) {
   const parts = [
     `merchant-id=${PF_MERCHANT_ID}`,
-    PF_PASSPHRASE ? `passphrase=${encodeURIComponent(PF_PASSPHRASE).replace(/%20/g, '+')}` : null,
-    `timestamp=${encodeURIComponent(timestamp).replace(/%20/g, '+')}`,
+    PF_PASSPHRASE ? `passphrase=${phpUrlEncode(PF_PASSPHRASE)}` : null,
+    `timestamp=${phpUrlEncode(timestamp)}`,
     'version=v1',
   ].filter(Boolean);
   return crypto.createHash('md5').update(parts.join('&')).digest('hex');
@@ -67,10 +80,10 @@ function pfApiSignature(timestamp) {
 function pfFormSignature(data) {
   const str = Object.keys(data)
     .filter(k => data[k] !== '' && data[k] != null)
-    .map(k => `${k}=${encodeURIComponent(String(data[k])).replace(/%20/g, '+')}`)
+    .map(k => `${k}=${phpUrlEncode(data[k])}`)
     .join('&');
   const full = PF_PASSPHRASE
-    ? `${str}&passphrase=${encodeURIComponent(PF_PASSPHRASE).replace(/%20/g, '+')}`
+    ? `${str}&passphrase=${phpUrlEncode(PF_PASSPHRASE)}`
     : str;
   return crypto.createHash('md5').update(full).digest('hex');
 }
