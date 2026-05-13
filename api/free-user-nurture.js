@@ -206,7 +206,7 @@ function buildDay60(email) {
 <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 12px;color:#0f172a;">Did you find what you were looking for?</h1>
 <p style="color:#475569;line-height:1.7;font-size:0.95rem;">We've sent a few emails over the past month. Looks like you might have already found what you needed — or moved on.</p>
 <p style="color:#475569;line-height:1.7;font-size:0.95rem;margin-top:14px;">No problem either way. Two quick options before we stop:</p>
-<p style="color:#475569;line-height:1.7;font-size:0.95rem;margin-top:14px;"><strong>Still curious?</strong> Hit reply and tell us what's missing from the calculator, or what would have made you upgrade. Honest feedback genuinely shapes the product — we read every reply.</p>
+<p style="color:#475569;line-height:1.7;font-size:0.95rem;margin-top:14px;"><strong>Still curious?</strong> Email us at <a href="mailto:${config.supportEmail}" style="color:#f59e0b;">${config.supportEmail}</a> and tell us what's missing from the calculator, or what would have made you upgrade. Honest feedback genuinely shapes the product — we read every reply.</p>
 <p style="color:#475569;line-height:1.7;font-size:0.95rem;margin-top:14px;"><strong>One last useful number, then we'll stop:</strong> Most South Africans need roughly <strong>25–30× their annual expenses</strong> saved to retire comfortably (the global "4% rule" adjusted for local conditions). If your expenses are R500k/year, that's R12.5m–R15m.</p>
 ${emailCTA('Run yours through the Goal Solver →', config.baseUrl + '/calculator')}
 <p style="color:#475569;line-height:1.7;font-size:0.95rem;">Whatever your answer, thanks for trying us out.</p>
@@ -214,17 +214,17 @@ ${emailCTA('Run yours through the Goal Solver →', config.baseUrl + '/calculato
   return {
     subject: 'Did you find what you were looking for?',
     html,
-    text: `Did you find what you were looking for?\n\nWe've sent a few emails. Looks like you might have moved on. Two quick options:\n\nStill curious? Hit reply and tell us what's missing or what would have made you upgrade.\n\nOne last useful number: most South Africans need 25–30× annual expenses saved to retire comfortably. R500k expenses → R12.5m–R15m needed.\n\nRun yours through the Goal Solver: ${config.baseUrl}/calculator\n\nReturns illustrative only — not financial advice.\nUnsubscribe: ${unsubscribeUrl(email)}`,
+    text: `Did you find what you were looking for?\n\nWe've sent a few emails. Looks like you might have moved on. Two quick options:\n\nStill curious? Email us at ${config.supportEmail} and tell us what's missing or what would have made you upgrade.\n\nOne last useful number: most South Africans need 25–30× annual expenses saved to retire comfortably. R500k expenses → R12.5m–R15m needed.\n\nRun yours through the Goal Solver: ${config.baseUrl}/calculator\n\nReturns illustrative only — not financial advice.\nUnsubscribe: ${unsubscribeUrl(email)}`,
   };
 }
 
 function buildDay90(email) {
   const html = wrapEmail(`
 <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 12px;color:#0f172a;">Last call — and a question</h1>
-<p style="color:#475569;line-height:1.7;font-size:0.95rem;">This is the last email you'll get from us unless you upgrade to Pro or hit reply.</p>
+<p style="color:#475569;line-height:1.7;font-size:0.95rem;">This is the last email you'll get from us unless you upgrade to Pro or email us.</p>
 <p style="color:#475569;line-height:1.7;font-size:0.95rem;margin-top:14px;">Honest question: was MyWealthLens not useful, or just not for you yet?</p>
 <p style="color:#475569;line-height:1.7;font-size:0.95rem;margin-top:14px;">If it's <strong>not for you yet</strong> — that's fine. The calculator stays free forever. Come back when retirement planning gets concrete.</p>
-<p style="color:#475569;line-height:1.7;font-size:0.95rem;margin-top:14px;">If it's <strong>not useful</strong>, hit reply and tell us what was missing. Two sentences is enough; we read every reply.</p>
+<p style="color:#475569;line-height:1.7;font-size:0.95rem;margin-top:14px;">If it's <strong>not useful</strong>, email us at <a href="mailto:${config.supportEmail}" style="color:#f59e0b;">${config.supportEmail}</a> and tell us what was missing. Two sentences is enough; we read every reply.</p>
 <p style="color:#475569;line-height:1.7;font-size:0.95rem;margin-top:14px;">One last reminder: Pro (R39/month) is the version that answers retirement-income drawdown, real-purchasing-power projections, and the SARS tax impact on your portfolio — the questions free leaves open.</p>
 ${emailCTA('Try Pro now →', config.baseUrl + '/account.html#pricing')}
 <p style="color:#475569;line-height:1.7;font-size:0.95rem;">Whatever you decide, thanks for the time.</p>
@@ -232,7 +232,7 @@ ${emailCTA('Try Pro now →', config.baseUrl + '/account.html#pricing')}
   return {
     subject: 'Last call — and a question',
     html,
-    text: `Last call — and a question.\n\nThis is the last email you'll get from us unless you upgrade to Pro or hit reply.\n\nHonest question: was MyWealthLens not useful, or just not for you yet?\n\nIf it's not for you yet — that's fine. The calculator stays free forever.\n\nIf it's not useful, hit reply and tell us what was missing. Two sentences is enough.\n\nOne last reminder: Pro (R39/month) answers drawdown, real-purchasing-power, and SARS tax impact — the questions free leaves open.\n\n${config.baseUrl}/account.html#pricing\n\nReturns illustrative only — not financial advice.\nUnsubscribe: ${unsubscribeUrl(email)}`,
+    text: `Last call — and a question.\n\nThis is the last email you'll get from us unless you upgrade to Pro or email us.\n\nHonest question: was MyWealthLens not useful, or just not for you yet?\n\nIf it's not for you yet — that's fine. The calculator stays free forever.\n\nIf it's not useful, email us at ${config.supportEmail} and tell us what was missing. Two sentences is enough.\n\nOne last reminder: Pro (R39/month) answers drawdown, real-purchasing-power, and SARS tax impact — the questions free leaves open.\n\n${config.baseUrl}/account.html#pricing\n\nReturns illustrative only — not financial advice.\nUnsubscribe: ${unsubscribeUrl(email)}`,
   };
 }
 
@@ -319,12 +319,13 @@ async function sendEmail(toEmail, payload) {
       'Content-Type':  'application/json',
     },
     body: JSON.stringify({
-      from:    config.emailFrom,
-      to:      [toEmail],
-      subject: payload.subject,
-      html:    payload.html,
-      text:    payload.text,
-      headers: { 'List-Unsubscribe': `<${unsubscribeUrl(toEmail)}>` },
+      from:     config.emailFrom,
+      to:       [toEmail],
+      reply_to: config.supportEmail,
+      subject:  payload.subject,
+      html:     payload.html,
+      text:     payload.text,
+      headers:  { 'List-Unsubscribe': `<${unsubscribeUrl(toEmail)}>` },
     }),
   });
   if (!r.ok) {

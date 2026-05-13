@@ -46,11 +46,11 @@ async function handler(req, res) {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
 
   if (!email || !token) {
-    return res.status(400).send(htmlPage('Invalid link', 'This unsubscribe link is missing required information. Please use the link from the email you received, or email <a href="mailto:support@mywealthlens.com" style="color:#f59e0b;">support@mywealthlens.com</a> to be unsubscribed manually.', false));
+    return res.status(400).send(htmlPage('Invalid link', 'This unsubscribe link is missing required information. Please use the link from the email you received, or email <a href="mailto:support@mywealthlens.co.za" style="color:#f59e0b;">support@mywealthlens.co.za</a> to be unsubscribed manually.', false));
   }
 
   if (token !== expectedToken(email)) {
-    return res.status(403).send(htmlPage('Invalid link', 'This unsubscribe link is not valid. Please use the link from the most recent email you received, or email <a href="mailto:support@mywealthlens.com" style="color:#f59e0b;">support@mywealthlens.com</a> to be unsubscribed manually.', false));
+    return res.status(403).send(htmlPage('Invalid link', 'This unsubscribe link is not valid. Please use the link from the most recent email you received, or email <a href="mailto:support@mywealthlens.co.za" style="color:#f59e0b;">support@mywealthlens.co.za</a> to be unsubscribed manually.', false));
   }
 
   // Mark as unsubscribed in Supabase

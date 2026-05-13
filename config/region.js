@@ -23,6 +23,7 @@ const ZA = {
   },
 
   emailFrom: 'MyWealthLens <noreply@mywealthlens.com>',
+  supportEmail: 'support@mywealthlens.co.za',
   dateLocale: 'en-ZA',
 };
 
