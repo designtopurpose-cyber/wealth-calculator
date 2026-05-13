@@ -63,6 +63,13 @@ const PLAN_AMOUNTS = {
   annual:  parseFloat(config.plans.annual.amount),
 };
 
+// Promo-discounted FIRST-payment amounts. Must mirror PROMOS in api/payfast-init.js.
+// When a valid promo is on the ITN (custom_str3), the first charge is allowed to be
+// lower than the plan's full amount — recurring charges thereafter match PLAN_AMOUNTS.
+const PROMO_FIRST_AMOUNTS = {
+  FIRSTMONTH19: { plan: 'monthly', firstAmount: 19.00 },
+};
+
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
 function todayStr() {
@@ -112,15 +119,20 @@ async function handler(req, res) {
     return res.status(400).send('Merchant mismatch');
   }
 
-  // 3. Verify payment amount matches the plan (replaces flaky back-post validation)
+  // 3. Verify payment amount matches the plan (replaces flaky back-post validation).
+  //    If a valid promo is attached, allow the discounted first-payment amount.
   if (payment_status === 'COMPLETE') {
-    const expected = PLAN_AMOUNTS[plan];
-    if (!expected) {
+    const fullAmount = PLAN_AMOUNTS[plan];
+    if (!fullAmount) {
       console.error('PayFast ITN: unknown plan', plan);
       return res.status(400).send('Unknown plan');
     }
+    const promoCfg = promoCode ? PROMO_FIRST_AMOUNTS[promoCode] : null;
+    const expected = (promoCfg && promoCfg.plan === plan)
+      ? promoCfg.firstAmount
+      : fullAmount;
     if (parseFloat(amount_gross) < expected) {
-      console.error('PayFast ITN: insufficient amount', { expected, received: amount_gross });
+      console.error('PayFast ITN: insufficient amount', { plan, promoCode, expected, received: amount_gross });
       return res.status(400).send('Amount mismatch');
     }
   }
