@@ -2,7 +2,7 @@
 
 > Source of truth for marketing copy, social posts, ads, and any AI-generated content. Use this document as context when generating posts via Blotato or any other content tool.
 >
-> **Last updated:** 2026-05-13 — synced with `design-docs/architecture.md` after Phase 5 email-infrastructure consolidation onto `.co.za` and full nurture sequence going live. See **§19 Maintenance** for the update protocol.
+> **Last updated:** 2026-05-13 — synced with `design-docs/architecture.md` after Phase 5 email-infrastructure consolidation onto `.co.za` and full nurture sequence going live. LinkedIn business page connected via Blotato; §20 records the Page ID and the mandatory targeting rule. See **§19 Maintenance** for the update protocol.
 
 ---
 
@@ -449,3 +449,47 @@ This document is the system prompt Blotato (and other AI agents) read when gener
 4. `marketing/growth-plan.md` — phased rollout plan + status
 
 If this file disagrees with code or architecture, **update this file** (don't change the code/architecture to match).
+
+---
+
+## 20. Blotato connection IDs and targeting rules
+
+The Blotato workspace authenticates LinkedIn under a personal account, but lists every company page that account admins as a sub-account. The destination is selected per-post via the `pageId` parameter. **Omitting `pageId` posts to the personal profile** — this is the single most important rule to honour.
+
+### LinkedIn IDs (canonical — do not edit unless re-connected)
+
+| Field | Value | Notes |
+|---|---|---|
+| LinkedIn `accountId` (Blotato) | `21320` | Connected under Martin Johannsen's personal LinkedIn |
+| MyWealthLens Page ID | `115993406` | **Always pass this** as `pageId` when posting to LinkedIn |
+| Relayte Polymers Page ID | `81580436` | Belongs to a different business — never use for MyWealthLens content |
+| Personal profile target | (omit `pageId`) | **Never** post MyWealthLens content here |
+
+### Mandatory LinkedIn posting rule
+
+When calling `blotato_create_post` for `platform: "linkedin"`:
+
+1. **`pageId` is required, not optional.** Even though the Blotato API marks it optional, the brand policy treats it as mandatory.
+2. **`pageId` MUST equal `115993406`** (the MyWealthLens Page ID) for any MyWealthLens content.
+3. If `pageId` is missing, wrong, or matches `81580436` (Relayte), abort the post and surface an error. Do not "default" to personal or Relayte.
+4. Before publishing, the AI agent / human reviewer should confirm the post preview shows **"MyWealthLens" as the author**, not "Martin Johannsen" and not "Relayte Polymers".
+
+### When re-connecting LinkedIn
+
+If the LinkedIn integration is ever reconnected (token refresh, new admin, etc.), the IDs may change. After any reconnection:
+
+1. Run `blotato_list_accounts` (filter by `platform: "linkedin"`).
+2. Update the table above with the new `accountId` and MyWealthLens Page ID.
+3. Bump §1 Last updated.
+
+### Other platforms (placeholders)
+
+Add similar tables here as we connect X, Threads, Instagram, etc. For platforms without a "page vs profile" split (X, Threads, Bluesky), the `accountId` alone is enough — but always record it in this section so there's no ambiguity at post time.
+
+| Platform | accountId | Notes |
+|---|---|---|
+| Twitter / X | _not connected yet_ | |
+| Threads | _not connected yet_ | |
+| Instagram | _not connected yet_ | |
+| Facebook | _not connected yet_ | If connected, requires `pageId` like LinkedIn — record both account and page IDs |
+| Pinterest | _not connected yet_ | Requires `boardId` per post — record default board ID when connected |
