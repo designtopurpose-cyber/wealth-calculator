@@ -1,12 +1,16 @@
 # MyWealthLens — Brand & Content Guide
 
 > Source of truth for marketing copy, social posts, ads, and any AI-generated content. Use this document as context when generating posts via Blotato or any other content tool.
+>
+> **Last updated:** 2026-05-13 — synced with `design-docs/architecture.md` after Phase 5 email-infrastructure consolidation onto `.co.za` and full nurture sequence going live. See **§19 Maintenance** for the update protocol.
 
 ---
 
 ## 1. Brand snapshot
 
-**MyWealthLens** is a South African personal finance and wealth-calculator web app at [mywealthlens.co.za](https://mywealthlens.co.za) (also `.com`). It helps South Africans answer the financial questions they actually have — "How much do I need to retire?", "What return rate do I need to hit my goal?", "Am I saving enough?" — using a fast, focused, SA-specific calculator and free educational resources.
+**MyWealthLens** is a South African personal finance and wealth-calculator web app at [mywealthlens.co.za](https://mywealthlens.co.za) — the canonical SA domain. The `.com` domain currently redirects to the same project but is reserved for a future US-market expansion (Stripe payments, USD pricing) and should **not** be used in SA-targeted copy. Always link `mywealthlens.co.za` in social posts and ads aimed at a SA audience.
+
+The product helps South Africans answer the financial questions they actually have — "How much do I need to retire?", "What return rate do I need to hit my goal?", "Am I saving enough?" — using a fast, focused, SA-specific calculator and free educational resources.
 
 The product is built around the **Goal Solver**: instead of telling you only what your money will grow to, you pick the variable you want answered — initial capital, monthly contribution, or annual return — adjust the other two, and the calculator solves for your chosen variable in real time.
 
@@ -383,5 +387,65 @@ If you're an AI generating a post, before you submit, check:
 4. **CTA check**: Is there a clear path to mywealthlens.co.za? ✅
 5. **Disclaimer check**: If projections are involved, did you note "not financial advice / illustrative"? ✅
 6. **Platform fit check**: Does the length, tone, and hashtag count match the platform conventions? ✅
+7. **Promo check**: Have you avoided mentioning promo codes (e.g. `FIRSTMONTH19`)? Promos are an **email-nurture-only** lever — never surface them in organic social. ✅
 
-If yes to all six, post.
+If yes to all seven, post.
+
+---
+
+## 18. Channel integration — organic vs email nurture
+
+Organic social and the email nurture sequence run in parallel and should **complement, not duplicate** each other.
+
+### Email nurture (private, owned channel)
+- 8-step sequence to free signups via `marketing_subscribers`: Day 0 → 3 → 7 → 14 → 21 → 30 → 60 → 90.
+- Day 60/90 only fire to subscribers who opened ≤1 prior email (gated by Resend open-tracking webhook).
+- Promo codes (e.g. `FIRSTMONTH19` for R19 first month) are introduced **here, not in organic content**. Keeps the email funnel valuable and avoids cheapening the R39 price anchor publicly.
+- All sends from `noreply@mywealthlens.co.za` with `Reply-To: support@mywealthlens.co.za`.
+
+### Organic social (public, top-of-funnel)
+- Job is to drive traffic to mywealthlens.co.za, where the visitor either:
+  (a) opens the free calculator, or
+  (b) submits a scenario email — entering the nurture sequence above.
+- Should establish credibility + showcase the Goal Solver. **No promo codes**, no "limited-time" pricing language.
+- Content pillars (§7) are the menu; rotate ~20% per pillar over a month.
+
+### Anti-duplication rule
+If a specific number/insight has already gone out in a nurture email, organic content can reference the same *topic* but should reframe with a different angle, hook, or example. The reader who signed up for both channels should not feel they're getting the same content twice.
+
+### Funnel signal back to brand voice
+The fact that we have an 8-step nurture sequence telling people "stop guessing, start solving" reinforces the brand promise. Organic posts can implicitly trust the reader to make their own decisions because the long-form education exists in the funnel — keep social posts punchy, not lecturing.
+
+---
+
+## 19. Maintenance — keep this guide current
+
+This document is the system prompt Blotato (and other AI agents) read when generating content. Stale brand guidance = off-brand or non-compliant posts at scale.
+
+### Update this file whenever the following ship
+
+| Change | What to update here |
+|---|---|
+| Pricing (e.g. R39/R399 changes, new Premium tier) | §1 Brand snapshot, §4 Value prop, §9 CTAs, §14 Boilerplate |
+| New product feature (e.g. Scenario Comparison expanding to 5 scenarios) | §1 Free/Pro table, §7 Pillar 3 examples |
+| New promo or pricing experiment | Decide: nurture-only (default) or organic-eligible? Update §17 #7 + §18 if the policy changes |
+| Compliance / regulatory change (FAIS, POPIA) | §11 Compliance guardrails |
+| New channel (e.g. opening a YouTube channel, Substack) | §12 Hashtags, §13 Cadence, §17 Quick-reference |
+| Domain or email-from change | §1 Brand snapshot, §18 Channel integration |
+| Voice / positioning shift | §2 Mission, §5 Brand voice, §8 Hook library |
+| New persona segment | §3 Target audience |
+| US expansion (or any other region) | §1 + add a regional appendix with USD pricing, US tax terms, US compliance |
+
+### Update procedure
+1. Make the architecture / product change.
+2. Bump the **Last updated** date at the top of this file.
+3. Add a one-line summary to the date header (e.g. "Updated 2026-06-XX — Premium tier launched, §1 + §9 reflect three-tier pricing").
+4. If the change is material, update `marketing/growth-plan.md` and `design-docs/architecture.md` in the same commit so the three docs stay in sync.
+
+### Source-of-truth hierarchy when docs disagree
+1. `config/region.js` (code) — pricing, currency, region constants
+2. `design-docs/architecture.md` — infrastructure, tables, env vars, endpoints
+3. `brand/brand-guide.md` (this file) — voice, audience, channel rules
+4. `marketing/growth-plan.md` — phased rollout plan + status
+
+If this file disagrees with code or architecture, **update this file** (don't change the code/architecture to match).
