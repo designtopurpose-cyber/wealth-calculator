@@ -79,13 +79,16 @@ async function hasRedeemedPromo(code, email) {
   return Array.isArray(arr) && arr.length > 0;
 }
 
+// Returns { promo, rejection? }. `rejection` is set when a promo code was supplied
+// but couldn't be applied — the frontend uses it to warn the user before they
+// get charged full price (no surprises at the PayFast checkout page).
 async function validatePromo(code, plan, email) {
-  if (!code) return null;
+  if (!code) return { promo: null };
   const promo = PROMOS[code];
-  if (!promo) return null;
-  if (promo.plan && promo.plan !== plan) return null; // plan restriction
-  if (await hasRedeemedPromo(code, email)) return null;
-  return promo;
+  if (!promo) return { promo: null, rejection: 'invalid' };
+  if (promo.plan && promo.plan !== plan) return { promo: null, rejection: 'wrong_plan' };
+  if (await hasRedeemedPromo(code, email)) return { promo: null, rejection: 'already_redeemed' };
+  return { promo };
 }
 
 async function handler(req, res) {
@@ -119,8 +122,11 @@ async function handler(req, res) {
   const fullPrice = planCfg.amount;
   const frequency = planCfg.frequency;
 
-  // Promo validation. Silently ignored if invalid / ineligible / already redeemed.
-  const promo = promoCode ? await validatePromo(promoCode, plan, user.email) : null;
+  // Promo validation. If a promo was supplied but rejected, `rejection` is
+  // returned to the caller so the frontend can warn the user instead of
+  // silently charging full price at PayFast.
+  const promoResult  = promoCode ? await validatePromo(promoCode, plan, user.email) : { promo: null };
+  const promo        = promoResult.promo;
   const promoApplied = promo ? promoCode : null;
   const firstAmount  = promo ? promo.firstAmount : fullPrice;
   const itemName     = promo ? `${planCfg.itemName} (${promoCode})` : planCfg.itemName;
@@ -162,7 +168,12 @@ async function handler(req, res) {
 
   params.signature = pfSignature(params);
 
-  return res.status(200).json({ pfUrl: PF_URL, params, promoApplied });
+  return res.status(200).json({
+    pfUrl: PF_URL,
+    params,
+    promoApplied,
+    promoRejection: promoResult.rejection || null,
+  });
 }
 
 module.exports = handler;

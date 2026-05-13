@@ -2472,7 +2472,10 @@
     btn.textContent = 'Preparing payment…';
     setMsg('planMsg', '', false);
 
-    const promo = getActivePromo();
+    // If the user has already been warned that the promo can't apply, the next
+    // click sends no promo at all — guarantees no rejection loop.
+    const promoConfirmed = btn.dataset.promoConfirmed === '1';
+    const promo = promoConfirmed ? null : getActivePromo();
 
     try {
       const res = await fetch('/api/payfast-init', {
@@ -2484,10 +2487,34 @@
       let json;
       try { json = await res.json(); } catch { json = {}; }
 
-      btn.disabled    = false;
-      btn.textContent = 'Continue to payment →';
+      if (!res.ok) {
+        btn.disabled    = false;
+        btn.textContent = 'Continue to payment →';
+        setMsg('planMsg', json.error || 'Something went wrong. Please try again.', true);
+        return;
+      }
 
-      if (!res.ok) { setMsg('planMsg', json.error || 'Something went wrong. Please try again.', true); return; }
+      // Promo was sent but couldn't be applied — warn before charging full price.
+      if (json.promoRejection && !promoConfirmed) {
+        btn.disabled              = false;
+        btn.dataset.promoConfirmed = '1';
+        const fullLabel = selectedPlan === 'annual' ? 'R399/year' : 'R39/month';
+        const reasons = {
+          already_redeemed: `This promo has already been used on this account.`,
+          wrong_plan:       `That promo doesn't apply to this plan.`,
+          invalid:          `That promo code is no longer valid.`,
+        };
+        const reason = reasons[json.promoRejection] || `That promo couldn't be applied.`;
+        setMsg('planMsg', `${reason} Continue at the standard ${fullLabel}?`, false);
+        btn.textContent = `Continue at ${fullLabel} →`;
+        // Clear the stored promo and reset the modal/banner so the UI is consistent.
+        try { localStorage.removeItem('mwl_promo'); } catch (e) {}
+        applyPromoToModal();
+        renderPromoBanner();
+        return;
+      }
+
+      btn.textContent = 'Continue to payment →';
 
       // Build and submit PayFast form
       const form = $('pfForm');
@@ -2521,6 +2548,10 @@
     if (plan) selectedPlan = plan;
     $('authBackdrop').classList.add('open');
     document.body.style.overflow = 'hidden';
+
+    // Reset the "user has been warned about promo rejection" flag on every open.
+    const proceedBtn = $('btnProceedToPay');
+    if (proceedBtn) { delete proceedBtn.dataset.promoConfirmed; proceedBtn.textContent = 'Continue to payment →'; }
 
     const { data: { session } } = await sb.auth.getSession();
     currentSession = session;
