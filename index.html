@@ -1025,6 +1025,25 @@
        PRICING
     ══════════════════════════════════════════ */
     #pricing { background: var(--bg-2); }
+    .promo-banner {
+      max-width: 720px; margin: 0 auto 36px;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, rgba(245,158,11,0.16) 0%, rgba(245,158,11,0.06) 100%);
+      border: 1px solid rgba(245,158,11,0.40);
+      border-radius: 14px;
+      display: none; align-items: center; gap: 16px;
+      box-shadow: 0 4px 24px rgba(245,158,11,0.10);
+    }
+    .promo-banner.active { display: flex; }
+    .promo-banner-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
+    .promo-banner-content { flex: 1; min-width: 0; }
+    .promo-banner-title { font-size: 0.95rem; font-weight: 700; color: #f59e0b; margin: 0 0 4px; }
+    .promo-banner-text  { font-size: 0.88rem; color: var(--text); margin: 0; line-height: 1.5; }
+    .promo-banner-text strong { color: #f59e0b; }
+    @media (max-width: 600px) {
+      .promo-banner { padding: 14px 18px; gap: 12px; }
+      .promo-banner-icon { font-size: 1.3rem; }
+    }
     .pricing-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -1605,6 +1624,16 @@
     <h2 class="section-title">Start free. Go Pro when you're ready.</h2>
     <p class="section-sub">The core calculator is completely free, forever. Pro unlocks advanced planning tools for R39/month — or save with an annual subscription.</p>
   </div>
+
+  <!-- Promo banner — shown only when a recognised promo code is active in sessionStorage -->
+  <div class="promo-banner" id="promoBanner" role="status" aria-live="polite">
+    <div class="promo-banner-icon">🎁</div>
+    <div class="promo-banner-content">
+      <p class="promo-banner-title" id="promoBannerTitle">Promo applied</p>
+      <p class="promo-banner-text" id="promoBannerText"></p>
+    </div>
+  </div>
+
   <div class="pricing-grid">
 
     <div class="pricing-card free">
@@ -2304,16 +2333,38 @@
 
   // ── Promo code handling ─────────────────────────────────────────────────────
   // If URL has ?promo=CODE, store in sessionStorage so it survives the signup modal flow.
-  // Surface it visually in the plan-selection view so users see the discount before paying.
+  // Surface it visually in the pricing section so users see the discount before paying.
+  const KNOWN_PROMOS = {
+    'FIRSTMONTH19': {
+      title: 'FIRSTMONTH19 applied',
+      text:  'Your first month of Pro Monthly is <strong>R19</strong> (vs the normal R39). Your subscription then continues at R39/month — one-click cancel any time.',
+    },
+  };
+
+  function getActivePromo() {
+    try { return sessionStorage.getItem('mwl_promo'); } catch (e) { return null; }
+  }
+
+  function renderPromoBanner() {
+    const promo = getActivePromo();
+    const banner = document.getElementById('promoBanner');
+    if (!banner) return;
+    if (!promo || !KNOWN_PROMOS[promo]) { banner.classList.remove('active'); return; }
+    const info = KNOWN_PROMOS[promo];
+    const titleEl = document.getElementById('promoBannerTitle');
+    const textEl  = document.getElementById('promoBannerText');
+    if (titleEl) titleEl.textContent = info.title;
+    if (textEl)  textEl.innerHTML    = info.text;
+    banner.classList.add('active');
+  }
+
   (function () {
     try {
       const urlPromo = new URLSearchParams(window.location.search).get('promo');
       if (urlPromo) sessionStorage.setItem('mwl_promo', urlPromo.trim().toUpperCase());
     } catch (e) {}
+    renderPromoBanner();
   })();
-  function getActivePromo() {
-    try { return sessionStorage.getItem('mwl_promo'); } catch (e) { return null; }
-  }
 
   $('btnProceedToPay').addEventListener('click', async () => {
     if (!currentSession) return;
