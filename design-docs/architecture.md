@@ -158,6 +158,35 @@ Records each promo-code redemption to enforce single-use-per-email at the databa
 
 UNIQUE index on `(code, email)` enforces single-use-per-email. The row is inserted by `api/webhook.js` **only after** PayFast confirms `payment_status=COMPLETE`, so abandoned signups don't burn the promo. Insertion attempts at signup time (`api/payfast-init.js`'s `hasRedeemedPromo()` check) are read-only.
 
+### Procedure for adding new tables (effective 2026-10-30)
+
+From 2026-10-30, Supabase no longer auto-exposes new `public` tables to the Data API (REST `/rest/v1/`, GraphQL `/graphql/v1/`, supabase-js). Existing tables (the four above) are grandfathered and keep their current grants. Every **new** table from that date forward must include explicit `GRANT` statements in its `CREATE TABLE` migration or PostgREST returns error `42501`.
+
+Standard migration template:
+
+```sql
+CREATE TABLE public.your_table (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  -- ... columns
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+GRANT SELECT ON public.your_table TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.your_table TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.your_table TO service_role;
+
+ALTER TABLE public.your_table ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "users_select_own"
+  ON public.your_table
+  FOR SELECT TO authenticated
+  USING (auth.uid() = user_id);
+-- (add INSERT / UPDATE / DELETE policies as appropriate)
+```
+
+Tailor grants per access model: read-only public data → `anon`; user-owned data → `authenticated` + `service_role` with `auth.uid()` policies, no `anon`; server-only data (webhook writes, cron reads) → `service_role` only.
+
 ---
 
 ## Payment Flow

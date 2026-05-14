@@ -2,7 +2,7 @@
 
 > Source of truth for marketing copy, social posts, ads, and any AI-generated content. Use this document as context when generating posts via Blotato or any other content tool.
 >
-> **Last updated:** 2026-05-13 — synced with `design-docs/architecture.md` after Phase 5 email-infrastructure consolidation onto `.co.za` and full nurture sequence going live. LinkedIn business page connected via Blotato; §20 records the Page ID and the mandatory targeting rule. See **§19 Maintenance** for the update protocol.
+> **Last updated:** 2026-05-13 — full social channel set wired up in Blotato (Facebook Page, LinkedIn Page, Instagram, Threads, X/Twitter — all on `@mywealthlens` brand handles except the LinkedIn personal-OAuth holder, and the FB Page approved as "Mywealthlens" — single capital — due to FB camelCase restrictions). §20 records every account ID, page ID, and the mandatory targeting rules. See **§19 Maintenance** for the update protocol.
 
 ---
 
@@ -456,40 +456,56 @@ If this file disagrees with code or architecture, **update this file** (don't ch
 
 The Blotato workspace authenticates LinkedIn under a personal account, but lists every company page that account admins as a sub-account. The destination is selected per-post via the `pageId` parameter. **Omitting `pageId` posts to the personal profile** — this is the single most important rule to honour.
 
-### LinkedIn IDs (canonical — do not edit unless re-connected)
+### Canonical IDs — all platforms
 
-| Field | Value | Notes |
-|---|---|---|
-| LinkedIn `accountId` (Blotato) | `21320` | Connected under Martin Johannsen's personal LinkedIn |
-| MyWealthLens Page ID | `115993406` | **Always pass this** as `pageId` when posting to LinkedIn |
-| Relayte Polymers Page ID | `81580436` | Belongs to a different business — never use for MyWealthLens content |
-| Personal profile target | (omit `pageId`) | **Never** post MyWealthLens content here |
+Update this table after any reconnect / new platform addition. Always derived from `blotato_list_accounts`, never copy-pasted from the Blotato UI.
 
-### Mandatory LinkedIn posting rule
+| Platform | `accountId` | `pageId` / handle | Handle / Page name | Notes |
+|---|---|---|---|---|
+| **Facebook** | `31771` | `1065522606652677` | "Mywealthlens" Page | `pageId` mandatory per call. Page name displays as `Mywealthlens` (single capital) — FB's name-review algorithm rejects camelCase variants like `MyWealthLens` for new Pages. This is the closest approved variant; revisit in 3–6 months once the Page has follower history (FB loosens name rules for established Pages). **Note:** the FB `accountId` changed from `31141` → `31771` after a disconnect/reconnect on 2026-05-13 (Page mapping was lost on a Reconnect; full disconnect + fresh OAuth restored it). `pageId` stayed stable. |
+| **LinkedIn** | `21320` | `115993406` | MyWealthLens Page | `pageId` mandatory per call (see rule below). Other sub-accounts: `81580436` (Relayte — never use), personal profile (omit pageId — never use) |
+| **Instagram** | `47055` | n/a | `@mywealthlens` (Business) | Linked to FB Page above; required field per call: `mediaType` (`story` or `reel`) for non-feed posts |
+| **Threads** | `6707` | n/a | `@mywealthlens` | No required fields; optional `replyControl` |
+| **X / Twitter** | `18070` | n/a | `@MyWealthLens` | New account — see warm-up note below |
+| **Pinterest** | _not connected_ | — | — | Requires `boardId` per post when added |
+| **YouTube** | _not connected_ | — | — | Defer until video pipeline exists |
+| **TikTok** | _not connected_ | — | — | Defer until video pipeline exists |
+| **Bluesky** | _not connected_ | — | — | Optional future channel |
 
-When calling `blotato_create_post` for `platform: "linkedin"`:
+### Mandatory per-platform rules
 
-1. **`pageId` is required, not optional.** Even though the Blotato API marks it optional, the brand policy treats it as mandatory.
-2. **`pageId` MUST equal `115993406`** (the MyWealthLens Page ID) for any MyWealthLens content.
-3. If `pageId` is missing, wrong, or matches `81580436` (Relayte), abort the post and surface an error. Do not "default" to personal or Relayte.
-4. Before publishing, the AI agent / human reviewer should confirm the post preview shows **"MyWealthLens" as the author**, not "Martin Johannsen" and not "Relayte Polymers".
+**LinkedIn:**
+1. `pageId` **must equal `115993406`** for every MyWealthLens post.
+2. If missing, wrong, or matches `81580436` (Relayte) → abort. No silent fallback to personal profile or Relayte.
+3. Post preview must show **"MyWealthLens" as the author** before publish.
 
-### When re-connecting LinkedIn
+**Facebook:**
+1. `pageId` **must equal `1065522606652677`** for every MyWealthLens post.
+2. Same abort-on-mismatch rule as LinkedIn.
+3. Post preview must show **the MyWealthLens Page** as the author, not Martin's personal FB profile.
 
-If the LinkedIn integration is ever reconnected (token refresh, new admin, etc.), the IDs may change. After any reconnection:
+**Instagram, Threads, X:**
+- No page/profile split — `accountId` alone determines destination.
+- Still confirm the correct handle (`@mywealthlens` / `@MyWealthLens`) in the preview before publish.
+- Don't connect personal IG/Threads/X accounts to Blotato simultaneously — single-destination-per-platform avoids accidental misposts.
 
-1. Run `blotato_list_accounts` (filter by `platform: "linkedin"`).
-2. Update the table above with the new `accountId` and MyWealthLens Page ID.
-3. Bump §1 Last updated.
+### X warm-up state (NEW account — temporary constraint)
 
-### Other platforms (placeholders)
+The X account is fresh as of 2026-05-13. To avoid spam-flagging:
 
-Add similar tables here as we connect X, Threads, Instagram, etc. For platforms without a "page vs profile" split (X, Threads, Bluesky), the `accountId` alone is enough — but always record it in this section so there's no ambiguity at post time.
+| Period | Posts/day | Links allowed | Other |
+|---|---|---|---|
+| Days 1–7 | 1 | No (only the pinned launch tweet has a link) | Follow 15–25 SA finance accounts, reply substantively to 2–3 threads/day |
+| Days 8–14 | 2 | ~50% with links | Continue replies + 1–2 quote-RTs/week |
+| Day 15+ | Per §13 cadence (1–2/day) | Yes | Steady state |
 
-| Platform | accountId | Notes |
-|---|---|---|
-| Twitter / X | _not connected yet_ | |
-| Threads | _not connected yet_ | |
-| Instagram | _not connected yet_ | |
-| Facebook | _not connected yet_ | If connected, requires `pageId` like LinkedIn — record both account and page IDs |
-| Pinterest | _not connected yet_ | Requires `boardId` per post — record default board ID when connected |
+Remove this subsection once the account is past day 15 (≈2026-05-28).
+
+### When re-connecting any platform
+
+If a connection is ever re-authed (token refresh, OAuth expiry, new admin, etc.), the `accountId` may change while sub-account `pageId`s usually stay stable. After any reconnect:
+
+1. Run `blotato_list_accounts` (optionally filter by platform).
+2. Update the table above with the new IDs.
+3. Bump the §1 **Last updated** date with a one-line summary.
+4. Sanity-check the next post via Blotato's queue preview before it fires.

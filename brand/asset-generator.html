@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyWealthLens — Brand Asset Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --amber: #f59e0b;
+      --bg:    #080b12;
+      --card:  #111827;
+      --line:  rgba(255,255,255,0.07);
+      --text:  #f1f5f9;
+      --mid:   #94a3b8;
+      --dim:   #64748b;
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 40px 24px 80px;
+      max-width: 1000px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 800;
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    .lede {
+      color: var(--mid);
+      font-size: 0.95rem;
+      margin-bottom: 32px;
+      max-width: 70ch;
+    }
+    .lede strong { color: var(--text); }
+    .asset {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+    .asset h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      margin-bottom: 4px;
+    }
+    .asset .specs {
+      color: var(--mid);
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+    }
+    .asset .specs code {
+      background: rgba(255,255,255,0.05);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: var(--amber);
+    }
+    .canvas-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: repeating-conic-gradient(#1a1f2e 0% 25%, #131826 0% 50%) 50% / 16px 16px;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    button {
+      background: var(--amber);
+      color: #0a0a0a;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    button:hover { background: #fbbf24; }
+    .footer-note {
+      color: var(--dim);
+      font-size: 0.8rem;
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+    .status {
+      display: inline-block;
+      margin-left: 12px;
+      color: var(--mid);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Brand Asset Generator</h1>
+  <p class="lede">
+    On-brand assets at exact platform dimensions, rendered from <strong>brand-guide.md §6</strong> colours and fonts.
+    Wait ~1 second for the Google Fonts to load (canvases below should render correctly), then click each download button.
+    Canvases below are preview-sized; the downloaded PNGs are full resolution.
+  </p>
+
+  <!-- ── Profile picture (square) ─────────────────────────────────────────── -->
+  <div class="asset">
+    <h2>Profile picture — square</h2>
+    <div class="specs">
+      Use for: <code>Facebook profile</code> · <code>LinkedIn page logo</code> · <code>X avatar</code> · <code>Instagram profile</code>.
+      Output: <code>1024×1024 PNG</code> (platforms downscale automatically).
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="profile" width="1024" height="1024" style="width:240px;height:240px;"></canvas>
+    </div>
+    <button onclick="download('profile', 'mywealthlens-profile-1024.png')">Download Profile Picture (PNG)</button>
+  </div>
+
+  <!-- ── Facebook cover ───────────────────────────────────────────────────── -->
+  <div class="asset">
+    <h2>Facebook cover photo</h2>
+    <div class="specs">
+      Use for: <code>Facebook Page cover</code>.
+      Output: <code>1640×624 PNG</code> (2× the 820×312 spec for retina clarity).
+      Mobile-safe centre region is honoured — all text stays inside the centre 640×312 zone.
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="fbcover" width="1640" height="624" style="width:600px;height:228px;"></canvas>
+    </div>
+    <button onclick="download('fbcover', 'mywealthlens-fb-cover-1640x624.png')">Download FB Cover (PNG)</button>
+  </div>
+
+  <!-- ── LinkedIn page cover ──────────────────────────────────────────────── -->
+  <div class="asset">
+    <h2>LinkedIn page cover</h2>
+    <div class="specs">
+      Use for: <code>LinkedIn company page banner</code>.
+      Output: <code>2256×382 PNG</code> (2× the 1128×191 spec).
+      Wordmark is centred — LinkedIn overlaps the lower-left ~140px with the logo circle, but the wordmark sits clear of that area.
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="licover" width="2256" height="382" style="width:752px;height:127px;"></canvas>
+    </div>
+    <button onclick="download('licover', 'mywealthlens-linkedin-cover-2256x382.png')">Download LinkedIn Cover (PNG)</button>
+  </div>
+
+  <!-- ── X / Twitter header ───────────────────────────────────────────────── -->
+  <div class="asset">
+    <h2>X / Twitter header</h2>
+    <div class="specs">
+      Use for: <code>X profile header</code>.
+      Output: <code>3000×1000 PNG</code> (2× the 1500×500 spec).
+      X crops the top/bottom on some viewports — wordmark sits in the centre safe-zone.
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="xheader" width="3000" height="1000" style="width:600px;height:200px;"></canvas>
+    </div>
+    <button onclick="download('xheader', 'mywealthlens-x-header-3000x1000.png')">Download X Header (PNG)</button>
+  </div>
+
+  <!-- ── Instagram profile (same as profile) ─────────────────────────────── -->
+  <div class="asset">
+    <h2>Reusable for: Instagram, Threads, TikTok avatars</h2>
+    <div class="specs">
+      All four use a square avatar — use the same <code>Profile picture</code> PNG above (Instagram displays at 320×320, Threads/TikTok at similar). No separate generation needed.
+    </div>
+  </div>
+
+  <p class="footer-note">
+    To add a new asset (e.g. LinkedIn personal banner at 1584×396, IG Reels cover, ad creative): copy a <code>&lt;canvas&gt;</code> block in the HTML, update the <code>id</code>, <code>width</code>, and <code>height</code>, then add a <code>draw…</code> call in the script with the right headline/tagline fractions. Brand colours live as constants at the top of the script.
+  </p>
+
+  <script>
+    // ── Brand colours (mirror brand-guide.md §6) ─────────────────────────
+    const AMBER = '#f59e0b';
+    const NAVY  = '#080b12';
+    const WHITE = '#ffffff';
+    const MUTED = '#94a3b8';
+
+    // ── Helpers ──────────────────────────────────────────────────────────
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    // ── Profile picture: amber rounded square + 📈 glyph ─────────────────
+    function drawProfile() {
+      const c = document.getElementById('profile');
+      const ctx = c.getContext('2d');
+      const W = c.width, H = c.height;
+      ctx.clearRect(0, 0, W, H);
+      // Amber rounded square (matches site nav-logo-icon style)
+      ctx.fillStyle = AMBER;
+      roundRect(ctx, 0, 0, W, H, W * 0.12);
+      ctx.fill();
+      // 📈 emoji centred. System emoji font — Segoe UI Emoji on Windows.
+      ctx.font = `${W * 0.58}px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      // Slight vertical optical centring nudge — emoji glyphs render with extra top padding
+      ctx.fillText('📈', W / 2, H / 2 + W * 0.04);
+    }
+
+    // ── Generic cover layout: navy bg, centred wordmark + amber underline + tagline ──
+    function drawCover(canvasId, headlineFraction, taglineFraction) {
+      const c = document.getElementById(canvasId);
+      const ctx = c.getContext('2d');
+      const W = c.width, H = c.height;
+
+      // Background
+      ctx.fillStyle = NAVY;
+      ctx.fillRect(0, 0, W, H);
+
+      // Subtle amber line accent in the top-right corner — small brand mark
+      ctx.strokeStyle = 'rgba(245,158,11,0.35)';
+      ctx.lineWidth   = Math.max(2, H * 0.006);
+      ctx.beginPath();
+      const accentSize = H * 0.5;
+      const ax = W - accentSize * 1.4;
+      const ay = H * 0.18;
+      // upward chart-line: low → mid → mid-high → high
+      ctx.moveTo(ax,                ay + accentSize * 0.85);
+      ctx.lineTo(ax + accentSize * 0.25, ay + accentSize * 0.55);
+      ctx.lineTo(ax + accentSize * 0.55, ay + accentSize * 0.40);
+      ctx.lineTo(ax + accentSize * 1.10, ay + accentSize * 0.10);
+      ctx.stroke();
+      // arrow tip dot
+      ctx.fillStyle = AMBER;
+      ctx.beginPath();
+      ctx.arc(ax + accentSize * 1.10, ay + accentSize * 0.10, Math.max(3, H * 0.012), 0, Math.PI * 2);
+      ctx.fill();
+
+      // Wordmark
+      const headlineSize = H * headlineFraction;
+      const taglineSize  = H * taglineFraction;
+
+      ctx.font = `800 ${headlineSize}px "Playfair Display", Georgia, serif`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle    = WHITE;
+      const yWord = H / 2;
+      ctx.fillText('MyWealthLens', W / 2, yWord);
+
+      // Amber underline — centred, 36% of word width, just below baseline
+      const wordWidth = ctx.measureText('MyWealthLens').width;
+      ctx.fillStyle = AMBER;
+      const underlineW = wordWidth * 0.36;
+      const underlineH = Math.max(3, headlineSize * 0.045);
+      ctx.fillRect(W / 2 - underlineW / 2, yWord + headlineSize * 0.18, underlineW, underlineH);
+
+      // Tagline
+      ctx.fillStyle = MUTED;
+      ctx.font      = `500 ${taglineSize}px "Inter", system-ui, sans-serif`;
+      ctx.fillText('Stop guessing. Start solving.', W / 2, yWord + headlineSize * 0.55 + taglineSize);
+    }
+
+    // ── PNG download ─────────────────────────────────────────────────────
+    function download(canvasId, filename) {
+      const c = document.getElementById(canvasId);
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href     = c.toDataURL('image/png');
+      link.click();
+    }
+
+    // ── Render once Google Fonts are ready ───────────────────────────────
+    document.fonts.ready.then(() => {
+      drawProfile();
+      drawCover('fbcover',  0.20, 0.075);   // 624 → headline ~125px, tagline ~47px
+      drawCover('licover',  0.30, 0.11);    // 382 → headline ~115px, tagline ~42px
+      drawCover('xheader',  0.20, 0.075);   // 1000 → headline ~200px, tagline ~75px
+    });
+  </script>
+
+</body>
+</html>
